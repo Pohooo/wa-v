@@ -273,6 +273,35 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
 .vsrow.dense .val { order: 3; font-size: 0.66rem; text-align: center; white-space: nowrap; }
 .vsrow.dense .vs { width: 28px; }
 .sec.vsrow.dense { flex: 1 1 100%; }
+
+.tbar { margin: 4px 0 10px; gap: 10px; }
+.tbar[hidden] { display: none !important; }
+.hint.starthint { display: block; margin-top: 6px; }
+
+.knob { --s: 1; width: calc(66px * var(--s)); height: calc(66px * var(--s)); }
+.knob i { top: calc(6px * var(--s)); width: calc(4px * var(--s)); height: calc(24px * var(--s)); margin-left: calc(-2px * var(--s)); transform-origin: 50% calc(27px * var(--s)); }
+.knob.big { --s: 1.4; }
+.knobrow.one { flex-wrap: nowrap; width: 100%; gap: 4px; align-items: flex-end; justify-content: space-between; }
+.knobrow.one .knob:not(.big) { --s: 0.94; }
+.knobrow.one .knobctl { flex: 1 1 0; width: auto; min-width: 0; }
+.knobrow.one .klbl { font-size: 0.76rem; }
+.knobrow.one .knobctl .val { font-size: 0.7rem; white-space: nowrap; }
+.knobrow.one .knobctl:has(.big) { flex: 1.45 1 0; }
+.vsrow.hero { width: 100%; align-items: flex-end; justify-content: space-between; gap: 10px; }
+.vsrow.hero .knobctl { width: auto; flex: 0 0 auto; margin-left: auto; }
+.sec.vsrow.hero { flex: 1 1 100%; }
+.sec.knobrow.one { flex: 1 1 100%; }
+.sec.divrow { flex: 1 1 100%; }
+.seg.divs { display: flex; width: 100%; gap: 6px; }
+.seg.divs .segbtn { flex: 1 1 0; padding-left: 0; padding-right: 0; }
+.vsrow.modehero { align-items: stretch; }
+.modes { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 8px; flex: 0 0 92px; }
+.modebtn { background: none; border: 0; border-left: 3px solid transparent; color: var(--mute); font: inherit; font-weight: 700; font-size: 0.95rem; padding: 8px 6px; text-align: left; cursor: pointer; }
+.modebtn[aria-pressed="true"] { color: var(--yellow); border-left-color: var(--yellow); }
+.knobrow.spread { justify-content: space-between; }
+.knobrow.one.spread .knob { --s: 1.1; }
+.modes { flex-basis: 98px; }
+.modebtn { white-space: nowrap; font-size: 0.86rem; padding-left: 8px; }
 </style>
 
 </head>
@@ -297,6 +326,8 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
 
   <div id="status" class="status info" role="status" aria-live="polite"><span>Upload a WAV file on the Home tab to get started.</span></div>
 
+
+
   <section class="panel" role="tabpanel" id="p-home" aria-labelledby="t-home">
     <label class="drop" id="drop" for="file">
       <b data-i18n="Upload WAV">Upload WAV</b>
@@ -314,12 +345,14 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
         <div><dt data-i18n="Channels">Channels</dt><dd id="f-ch"></dd></div>
       </dl>
       <div class="wavebox" id="wavebox"><canvas id="wave" aria-label="Waveform of the uploaded audio" data-i18n-aria="Waveform of the uploaded audio"></canvas><div class="startline" id="startline" hidden><i class="sh"></i></div></div>
-      <div class="row transport">
+      <div class="row transport tbar" id="tbar" hidden>
         <button class="ibtn play" id="play" type="button" aria-label="Play" data-i18n-aria="Play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5v17l14-8.5z" fill="currentColor"/></svg></button>
         <button class="ibtn stop" id="stop" type="button" aria-label="Stop" data-i18n-aria="Stop"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="1.5" fill="currentColor"/></svg></button>
         <button class="btn toggle" id="loop" type="button" aria-pressed="true" data-i18n="Loop">Loop</button>
-        <span class="hint" data-i18n="Drag the line on the track to set where playback starts.">Drag the line on the track to set where playback starts.</span>
-      </div>
+        
+</div>
+      <span class="hint starthint" data-i18n="Drag the line on the track to set where playback starts.">Drag the line on the track to set where playback starts.</span>
+
     </div>
 
     <div>
@@ -346,14 +379,14 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
           <output class="keyout" id="key-out">–</output>
           <span class="hint" data-i18n="An estimate from the melody and chords. Hard techno with little melody can be unclear. The second code is the Camelot key (for DJ mixing).">An estimate from the melody and chords. Hard techno with little melody can be unclear. The second code is the Camelot key (for DJ mixing).</span>
         </div>
-        <div class="field">
+        <div class="field" hidden>
           <label for="div" data-i18n="Beat division">Beat division</label>
           <select id="div">
             <option value="1">1/1</option>
+            <option value="0.75">3/4</option>
             <option value="0.5">1/2</option>
+            <option value="0.375">3/8</option>
             <option value="0.25" selected>1/4</option>
-            <option value="0.125">1/8</option>
-            <option value="0.0625">1/16</option>
           </select>
           <span class="hint" data-i18n="The Delay timing uses this.">The Delay timing uses this.</span>
         </div>
@@ -430,7 +463,7 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
     shp:  merge(mk(), { on: false, preset: 0, type: 0, amount: 40, ftype: 1, freq: 12000, mix: 100, level: -3 }),
     cho:  merge(mk(), { on: false, rate: 0.84, depth: 60, stereo: 100, mix: 60 }),
     cmp:  merge(mk(), { on: false, ing: 0, thr: -20, ratio: 4, atk: 18, hold: 0, rel: 186, level: 0 }),
-    dly:  merge(mk(), { on: false, ftype: 0, freq: 1000, fb: 35, tone: 6000, lc: 20, level: -10 })
+    dly:  merge(mk(), { on: false, mode: 0, ftype: 0, freq: 1000, fb: 35, tone: 6000, lc: 20, level: -10 })
   };
   var S = clone(DEF);
 
@@ -441,10 +474,8 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
     { n: 'Fold' }, { n: 'Sine' }, { n: 'Wrap' }, { n: 'Rectify' }, { n: 'Stairs' }
   ];
   var FTYPES = ['Off', 'Low-pass', 'High-pass', 'Band-pass'];
-  var FILT = { cls: 'knobrow', ctl: [
-    { k: 'ftype', label: 'Filter', min: 0, max: 3, step: 1, unit: '', kind: 'knob', names: FTYPES },
-    { k: 'freq', label: 'Frequency', min: 20, max: 20000, step: 1, unit: ' Hz', kind: 'knob', log: true }
-  ] };
+  var FT = { k: 'ftype', label: 'Filter', min: 0, max: 3, step: 1, unit: '', kind: 'knob', names: FTYPES };
+  var FQ = { k: 'freq', label: 'Frequency', min: 20, max: 20000, step: 1, unit: ' Hz', kind: 'knob', log: true, big: true };
   var PRESETS = [
     { n: 'Hard', amount: 90, type: 1 },
     { n: 'Medium', amount: 60, type: 0 },
@@ -454,17 +485,17 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
 
   var FX = {
     rev: { title: 'Reverb', text: 'Adds space to the sound, as if it played in a room.', sections: [
-      { cls: 'vsrow', ctl: [
+      { cls: 'vsrow hero', ctl: [
         { k: 'er', label: 'ER', min: 0, max: 100, step: 1, unit: '%', kind: 'vs' },
         { k: 'dry', label: 'Dry', min: 0, max: 100, step: 1, unit: '%', kind: 'vs' },
-        { k: 'wet', label: 'Wet', min: 0, max: 100, step: 1, unit: '%', kind: 'vs' }
+        { k: 'wet', label: 'Wet', min: 0, max: 100, step: 1, unit: '%', kind: 'vs' },
+        FQ
       ] },
-      { cls: 'knobrow', ctl: [
+      { cls: 'knobrow one', ctl: [
         { k: 'lc', label: 'Low', min: 20, max: 1000, step: 1, unit: ' Hz', kind: 'knob', log: true },
         { k: 'hc', label: 'High', min: 1000, max: 20000, step: 100, unit: ' Hz', kind: 'knob', log: true },
-        LEVEL
+        LEVEL, FT
       ] },
-      FILT,
       { cls: 'stack', ctl: [
         { k: 'pre', label: 'Pre-delay', min: 0, max: 200, step: 1, unit: ' ms' },
         { k: 'size', label: 'Room size', min: 0.3, max: 6, step: 0.1, unit: ' s' },
@@ -474,11 +505,11 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
     ] },
     dist: { title: 'Distortion', text: 'Pick a type that sets the distortion, then fine-tune it.', sections: [
       { cls: 'presets', ctl: [{ kind: 'presets', k: 'preset' }] },
-      { cls: 'knobrow', ctl: [
+      { cls: 'knobrow one', ctl: [
         { k: 'amount', label: 'Drive', min: 0, max: 100, step: 1, unit: '%', kind: 'knob' },
-        { k: 'level', label: 'Level', min: -24, max: 12, step: 0.5, unit: ' dB', kind: 'knob' }
+        { k: 'level', label: 'Level', min: -24, max: 12, step: 0.5, unit: ' dB', kind: 'knob' },
+        FT, FQ
       ] },
-      FILT,
       { cls: 'stack', ctl: [
         { k: 'mix', label: 'Mix (original and distorted)', min: 0, max: 100, step: 1, unit: '%' },
         { k: 'lc', label: 'Low cut (before distortion)', min: 20, max: 1000, step: 1, unit: ' Hz' },
@@ -487,19 +518,19 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
     ] },
     shp: { title: 'Wave Shaper', text: 'Bends the shape of the wave to add new harmonics and a metallic edge.', sections: [
       { cls: 'presets', ctl: [{ kind: 'presets', k: 'preset' }] },
-      { cls: 'knobrow', ctl: [
+      { cls: 'knobrow one', ctl: [
         { k: 'amount', label: 'Amount', min: 0, max: 100, step: 1, unit: '%', kind: 'knob' },
-        { k: 'level', label: 'Level', min: -24, max: 12, step: 0.5, unit: ' dB', kind: 'knob' }
+        { k: 'level', label: 'Level', min: -24, max: 12, step: 0.5, unit: ' dB', kind: 'knob' },
+        FT, FQ
       ] },
-      FILT,
       { cls: 'stack', ctl: [
         { k: 'mix', label: 'Mix (original and shaped)', min: 0, max: 100, step: 1, unit: '%' },
         GAIN, GATE
       ] }
     ] },
     cho: { title: 'Chorus', text: 'Thickens the sound by mixing in slightly detuned, moving copies.', sections: [
-      { cls: 'knobrow', ctl: [
-        { k: 'rate', label: 'Rate', min: 0.05, max: 10, step: 0.01, unit: ' Hz', kind: 'knob', log: true },
+      { cls: 'knobrow one', ctl: [
+        { k: 'rate', label: 'Rate', min: 0.05, max: 10, step: 0.01, unit: ' Hz', kind: 'knob', log: true, big: true },
         { k: 'depth', label: 'Depth', min: 0, max: 100, step: 1, unit: ' %', kind: 'knob' },
         { k: 'stereo', label: 'Stereo', min: 0, max: 100, step: 1, unit: ' %', kind: 'knob' },
         { k: 'mix', label: 'Mix', min: 0, max: 100, step: 1, unit: ' %', kind: 'knob' }
@@ -517,15 +548,19 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
       ] }
     ] },
     dly: { title: 'Delay', text: 'An echo that follows the tempo.', sections: [
-      { cls: 'knobrow', ctl: [
-        { k: 'level', label: 'Level', min: -48, max: 6, step: 0.5, unit: ' dB', kind: 'knob', offmin: true },
-        { k: 'fb', label: 'Feedback', min: 0, max: 90, step: 1, unit: '%', kind: 'knob' },
-        { k: 'tone', label: 'Tone', min: 500, max: 12000, step: 100, unit: ' Hz', kind: 'knob', log: true }
+      { cls: 'divrow', ctl: [{ kind: 'divs', k: 'div' }] },
+      { cls: 'modehero vsrow dense', ctl: [
+        { kind: 'modes', k: 'mode' },
+        { k: 'level', label: 'Level', min: -48, max: 6, step: 0.5, unit: ' dB', dec: 1, kind: 'vs', offmin: true },
+        { k: 'fb', label: 'Feedback', min: 0, max: 90, step: 1, unit: '%', kind: 'vs' },
+        { k: 'tone', label: 'Tone', min: 500, max: 12000, step: 100, unit: ' Hz', kind: 'vs', log: true },
+        { k: 'ftype', label: 'Filter', min: 0, max: 3, step: 1, unit: '', kind: 'vs', names: FTYPES },
+        { k: 'freq', label: 'Frequency', min: 20, max: 20000, step: 1, unit: ' Hz', kind: 'vs', log: true }
       ] },
-      FILT,
-      { cls: 'stack', ctl: [
-        { k: 'lc', label: 'Low cut (on echoes)', min: 20, max: 1000, step: 1, unit: ' Hz' },
-        GAIN, GATE
+      { cls: 'knobrow one spread', ctl: [
+        { k: 'lc', label: 'Low cut', min: 20, max: 1000, step: 1, unit: ' Hz', kind: 'knob', log: true },
+        { k: 'gain', label: 'Gain', min: -24, max: 24, step: 0.5, unit: ' dB', kind: 'knob' },
+        { k: 'gate', label: 'Gate', min: -80, max: 0, step: 1, unit: ' dB', kind: 'knob' }
       ] }
     ] }
   };
@@ -1037,6 +1072,12 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
   }
 
   /* ---------- fülek ---------- */
+  function placeBar(id) {
+    var bar = $('#tbar'); if (!bar) return;
+    if (id === 'home') $('#wavebox').after(bar);
+    else if (id === 'export') $('#p-export').prepend(bar);
+    else { var ln = $('#lanes-' + id); if (ln) ln.after(bar); }
+  }
   var tabs = [].slice.call(document.querySelectorAll('.tab'));
   function showTab(id) {
     tabs.forEach(function (t) {
@@ -1045,6 +1086,7 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
       t.tabIndex = on ? 0 : -1;
       $('#p-' + t.dataset.p).hidden = !on;
     });
+    placeBar(id);
     if (id === 'export') updateSummary();
     if (KEYS.indexOf(id) >= 0) { drawLaneWave(id); renderRegions(id); drawGrid(id); if (id === 'eq') drawEq(); }
   }
@@ -1074,7 +1116,7 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
   }
   function knobHTML(key, c) {
     var id = 'r-' + key + '-' + c.k;
-    return '<div class="ctl knobctl"><div class="knob" id="' + id + '" role="slider" tabindex="0" aria-label="' + c.label + '" aria-valuemin="' + c.min + '" aria-valuemax="' + c.max +
+    return '<div class="ctl knobctl"><div class="knob' + (c.big ? ' big' : '') + '" id="' + id + '"" role="slider" tabindex="0" aria-label="' + c.label + '" aria-valuemin="' + c.min + '" aria-valuemax="' + c.max +
       '" data-fx="' + key + '" data-k="' + c.k + '"><i></i></div><span class="klbl">' + c.label + '</span><output class="val" id="o-' + key + '-' + c.k + '"></output></div>';
   }
   function vsHTML(key, c) {
@@ -1124,7 +1166,19 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
     st.preset = st.last = i; st.on = true;
     refreshFx(key); changed();
   }
+  var DIVS = [['0.25', '1/4'], ['0.375', '3/8'], ['0.5', '1/2'], ['0.75', '3/4'], ['1', '1/1']];
+  var MODES = ['Stereo', 'Ping-Pong', 'Mirror'];
+  function divsHTML() {
+    return '<div class="seg divs" id="divs-dly" role="group" aria-label="Delay time">' +
+      DIVS.map(function (d) { return '<button type="button" class="segbtn" data-div="' + d[0] + '" aria-pressed="false">' + d[1] + '</button>'; }).join('') + '</div>';
+  }
+  function modesHTML() {
+    return '<div class="modes" id="modes-dly" role="group" aria-label="Mode">' +
+      MODES.map(function (m, i) { return '<button type="button" class="modebtn" data-mode="' + i + '" aria-pressed="false">' + m + '</button>'; }).join('') + '</div>';
+  }
   function ctlHTML(key, c) {
+    if (c.kind === 'divs') return divsHTML();
+    if (c.kind === 'modes') return modesHTML();
     return c.kind === 'knob' ? knobHTML(key, c) : c.kind === 'vs' ? vsHTML(key, c) : c.kind === 'presets' ? presetsHTML(key) : rangeHTML(key, c);
   }
 
@@ -1142,7 +1196,7 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
 
   function allCtl(key) {
     var out = [];
-    FX[key].sections.forEach(function (s) { s.ctl.forEach(function (c) { if (c.kind !== 'presets') out.push(c); }); });
+    FX[key].sections.forEach(function (s) { s.ctl.forEach(function (c) { if (c.kind !== 'presets' && c.kind !== 'divs' && c.kind !== 'modes') out.push(c); }); });
     return out;
   }
   function ctlSpec(key, k) { return allCtl(key).filter(function (c) { return c.k === k; })[0]; }
@@ -1177,6 +1231,10 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
       $('#pn-shp').textContent = pickList(key)[st.preset].n;
       drawCurve(key);
     }
+    if (key === 'dly') {
+      document.querySelectorAll('#divs-dly .segbtn').forEach(function (b) { b.setAttribute('aria-pressed', Number(b.dataset.div) === S.div ? 'true' : 'false'); });
+      document.querySelectorAll('#modes-dly .modebtn').forEach(function (b) { b.setAttribute('aria-pressed', Number(b.dataset.mode) === st.mode ? 'true' : 'false'); });
+    }
     setSwitch(key);
   }
   function updateDelayInfo() {
@@ -1198,6 +1256,10 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
   document.addEventListener('click', function (e) {
     var sw = e.target.closest('[data-sw]');
     if (sw) { var k = sw.dataset.sw; S[k].on = !S[k].on; refreshFx(k); changed(); return; }
+    var dv = e.target.closest('[data-div]');
+    if (dv) { S.div = Number(dv.dataset.div); var sel = $('#div'); if (sel) sel.value = dv.dataset.div; S.dly.on = true; refreshFx('dly'); updateDelayInfo(); changed(); return; }
+    var md = e.target.closest('[data-mode]');
+    if (md) { S.dly.mode = Number(md.dataset.mode); S.dly.on = true; refreshFx('dly'); changed(); return; }
     var pb = e.target.closest('[data-preset]');
     if (pb) { applyPick('dist', Number(pb.dataset.preset)); return; }
     var ar = e.target.closest('[data-arrow]');
@@ -1656,7 +1718,7 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
     $('#f-len').textContent = fmtTime(dec.duration);
     $('#f-rate').textContent = dec.sampleRate + ' Hz';
     $('#f-ch').textContent = chN === 1 ? t('Mono') : chN === 2 ? t('Stereo') : t('{n} channels', { n: chN });
-    $('#loaded').hidden = false; $('#mascot-wait').hidden = true;
+    $('#loaded').hidden = false; $('#tbar').hidden = false; $('#mascot-wait').hidden = true;
     drawWave(0); updateStartLine();
     var bpmMsg = '';
     try {
@@ -1952,11 +2014,36 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
     });
     g.erSum.connect(g.rHP);
     /* Delay */
-    g.yDry = gn(ctx); g.dSend = gn(ctx); g.dly = ctx.createDelay(10); g.fbTone = bq(ctx, 'lowpass', 6000, 0.7);
-    g.hpF = bq(ctx, 'highpass', 20, 0.7); g.yF = bq(ctx, 'allpass', 1000, 0.7); g.fb = gn(ctx); g.yL = gn(ctx); g.ySum = gn(ctx); g.norm = gn(ctx);
+    g.yDry = gn(ctx); g.dSend = gn(ctx);
+    g.yF = bq(ctx, 'allpass', 1000, 0.7); g.yL = gn(ctx); g.ySum = gn(ctx); g.norm = gn(ctx);
     g.rSum.connect(g.yDry); g.yDry.connect(g.ySum);
-    g.rSum.connect(g.dSend); g.dSend.connect(g.dly); g.dly.connect(g.fbTone); g.fbTone.connect(g.hpF); g.hpF.connect(g.fb); g.fbSat = ctx.createWaveShaper(); g.fbSat.curve = satCurve(); g.fb.connect(g.fbSat); g.fbSat.connect(g.dly);
-    g.dly.connect(g.yF); g.yF.connect(g.yL); g.yL.connect(g.ySum);
+    g.rSum.connect(g.dSend);
+    var loop = function (d) {
+      var L = { tone: bq(ctx, 'lowpass', 6000, 0.7), hp: bq(ctx, 'highpass', 20, 0.7), fb: gn(ctx), sat: ctx.createWaveShaper() };
+      L.sat.curve = satCurve(); d.connect(L.tone); L.tone.connect(L.hp); L.hp.connect(L.fb); L.fb.connect(L.sat); L.sat.connect(d);
+      return L;
+    };
+    g.mode = [gn(ctx), gn(ctx), gn(ctx)];
+    g.mode.forEach(function (m) { g.dSend.connect(m); });
+    /* Stereo */
+    g.dly = ctx.createDelay(10); g.mode[0].connect(g.dly); g.dly.connect(g.yF);
+    g.loops = [loop(g.dly)];
+    /* Ping-Pong */
+    g.ppIn = gn(ctx); g.ppIn.channelCount = 1; g.ppIn.channelCountMode = 'explicit';
+    g.ppA = ctx.createDelay(10); g.ppB = ctx.createDelay(10);
+    g.ppTone = bq(ctx, 'lowpass', 6000, 0.7); g.ppHp = bq(ctx, 'highpass', 20, 0.7); g.ppFb = gn(ctx); g.ppSat = ctx.createWaveShaper(); g.ppSat.curve = satCurve();
+    g.ppPL = ctx.createStereoPanner(); g.ppPL.pan.value = -1; g.ppPR = ctx.createStereoPanner(); g.ppPR.pan.value = 1; g.ppOut = gn(ctx);
+    g.mode[1].connect(g.ppIn); g.ppIn.connect(g.ppA); g.ppA.connect(g.ppTone); g.ppTone.connect(g.ppHp);
+    g.ppHp.connect(g.ppPL); g.ppPL.connect(g.ppOut); g.ppHp.connect(g.ppB); g.ppB.connect(g.ppPR); g.ppPR.connect(g.ppOut);
+    g.ppB.connect(g.ppFb); g.ppFb.connect(g.ppSat); g.ppSat.connect(g.ppA); g.ppOut.connect(g.yF);
+    g.loops.push({ tone: g.ppTone, hp: g.ppHp, fb: g.ppFb });
+    /* Mirror */
+    g.mSplit = ctx.createChannelSplitter(2); g.mMerge = ctx.createChannelMerger(2);
+    g.mL = ctx.createDelay(10); g.mR = ctx.createDelay(10);
+    g.mode[2].connect(g.mSplit); g.mSplit.connect(g.mL, 0); g.mSplit.connect(g.mR, 1);
+    g.mL.connect(g.mMerge, 0, 1); g.mR.connect(g.mMerge, 0, 0); g.mMerge.connect(g.yF);
+    g.loops.push(loop(g.mL)); g.loops.push(loop(g.mR));
+    g.yF.connect(g.yL); g.yL.connect(g.ySum);
     /* Compressor */
     g.kDry = gn(ctx); g.kIn = gn(ctx); g.kOut = gn(ctx); g.kWet = gn(ctx); g.kSum = gn(ctx);
     g.comp = ctx.createDynamicsCompressor(); g.comp.knee.value = 0;
@@ -2050,8 +2137,14 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
     var y = S.dly;
     setFilt(g, g.yF, y, set);
     var dt = Math.min(9.9, Math.max(0.001, delaySec()));
-    if (g._dt !== dt) { if (g.live && g._dt !== undefined) g.dly.delayTime.setTargetAtTime(dt, g.ctx.currentTime, 0.08); else g.dly.delayTime.value = dt; g._dt = dt; }
-    set(g.fb.gain, Math.min(0.85, y.fb / 100)); set(g.fbTone.frequency, y.tone); set(g.hpF.frequency, y.lc);
+    if (g._dt !== dt) {
+      [g.dly, g.ppA, g.ppB, g.mL, g.mR].forEach(function (d) {
+        if (g.live && g._dt !== undefined) d.delayTime.setTargetAtTime(dt, g.ctx.currentTime, 0.08); else d.delayTime.value = dt;
+      });
+      g._dt = dt;
+    }
+    g.loops.forEach(function (L) { set(L.fb.gain, Math.min(0.85, y.fb / 100)); set(L.tone.frequency, y.tone); set(L.hp.frequency, y.lc); });
+    g.mode.forEach(function (m, i) { set(m.gain, y.mode === i ? 1 : 0); });
     set(g.yL.gain, y.level <= -48 ? 0 : dbg(y.level));
     sch('dly', g.dSend.gain, function (a) { return a * dbg(y.gain); });
 
@@ -2142,7 +2235,7 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
       try { live.lfo.stop(); } catch (e) {}
       try { live.norm.disconnect(); } catch (e) {}
       try { live.lim.disconnect(); live.ana.disconnect(); } catch (e) {}
-      try { live.dly.disconnect(); live.fb.disconnect(); } catch (e) {}
+      try { live.dSend.disconnect(); } catch (e) {}
       live = null;
     }
     playing = false; cancelAnimationFrame(raf);
@@ -2468,7 +2561,7 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
     if (S.rev.on) t = Math.max(t, S.rev.size + S.rev.pre / 1000);
     if (S.dly.on) {
       var fb = S.dly.fb / 100, reps = fb > 0 ? Math.min(40, Math.ceil(Math.log(0.01) / Math.log(fb))) : 1;
-      t = Math.max(t, delaySec() * (reps + 1));
+      t = Math.max(t, delaySec() * (reps + 1) * (S.dly.mode === 1 ? 2 : 1));
     }
     return Math.min(t, 20);
   }
