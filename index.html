@@ -266,6 +266,13 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
 .arr { width: 44px; height: 44px; font-size: 1.8rem; line-height: 1; background: var(--raise); color: var(--ink); border: 2px solid var(--mute); cursor: pointer; }
 .arr:hover { border-color: var(--yellow); color: var(--yellow); }
 .sec.presets { display: flex; justify-content: center; }
+
+.vsrow.dense { gap: 4px; width: 100%; justify-content: space-between; }
+.vsrow.dense .vsctl { width: auto; flex: 1 1 0; min-width: 0; }
+.vsrow.dense .klbl { order: -1; font-size: 0.68rem; text-align: center; }
+.vsrow.dense .val { order: 3; font-size: 0.66rem; text-align: center; white-space: nowrap; }
+.vsrow.dense .vs { width: 28px; }
+.sec.vsrow.dense { flex: 1 1 100%; }
 </style>
 
 </head>
@@ -282,7 +289,9 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
     <button class="tab" role="tab" id="t-rev" data-p="rev" aria-selected="false" aria-controls="p-rev" type="button">Reverb<span class="dot" hidden></span></button>
     <button class="tab" role="tab" id="t-dist" data-p="dist" aria-selected="false" aria-controls="p-dist" type="button">Distortion<span class="dot" hidden></span></button>
     <button class="tab" role="tab" id="t-shp" data-p="shp" aria-selected="false" aria-controls="p-shp" type="button">Wave Shaper<span class="dot" hidden></span></button>
+    <button class="tab" role="tab" id="t-cho" data-p="cho" aria-selected="false" aria-controls="p-cho" type="button">Chorus<span class="dot" hidden></span></button>
     <button class="tab" role="tab" id="t-dly" data-p="dly" aria-selected="false" aria-controls="p-dly" type="button">Delay<span class="dot" hidden></span></button>
+    <button class="tab" role="tab" id="t-cmp" data-p="cmp" aria-selected="false" aria-controls="p-cmp" type="button">Compressor<span class="dot" hidden></span></button>
     <button class="tab" role="tab" id="t-export" data-p="export" aria-selected="false" aria-controls="p-export" type="button">Export</button>
   </div>
 
@@ -327,14 +336,15 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
           <span class="hint" data-i18n="A faster tempo raises the pitch, a slower one lowers it.">A faster tempo raises the pitch, a slower one lowers it.</span>
         </div>
         <div class="field">
-          <span class="flabel" data-i18n="Detected key">Detected key</span>
-          <output class="keyout" id="key-out">–</output>
-          <span class="hint" data-i18n="An estimate from the melody and chords. Hard techno with little melody can be unclear. The second code is the Camelot key (for DJ mixing).">An estimate from the melody and chords. Hard techno with little melody can be unclear. The second code is the Camelot key (for DJ mixing).</span>
+          <label for="key-to" data-i18n="Pitch">Pitch</label>
+          <input type="range" id="key-to" min="-6" max="6" step="1" value="0" disabled>
+          <output class="keyout" id="pitch-val">Original</output>
+          <span class="hint" data-i18n="Changes the pitch without changing the tempo. Works best within a few semitones.">Changes the pitch without changing the tempo. Works best within a few semitones.</span>
         </div>
         <div class="field">
-          <label for="key-to" data-i18n="Play in key">Play in key</label>
-          <select id="key-to" disabled></select>
-          <span class="hint" data-i18n="Changes the pitch without changing the tempo. Works best within a few semitones.">Changes the pitch without changing the tempo. Works best within a few semitones.</span>
+          <span class="flabel" data-i18n="Key">Key</span>
+          <output class="keyout" id="key-out">–</output>
+          <span class="hint" data-i18n="An estimate from the melody and chords. Hard techno with little melody can be unclear. The second code is the Camelot key (for DJ mixing).">An estimate from the melody and chords. Hard techno with little melody can be unclear. The second code is the Camelot key (for DJ mixing).</span>
         </div>
         <div class="field">
           <label for="div" data-i18n="Beat division">Beat division</label>
@@ -360,7 +370,10 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
   <section class="panel" role="tabpanel" id="p-rev" aria-labelledby="t-rev" hidden></section>
   <section class="panel" role="tabpanel" id="p-dist" aria-labelledby="t-dist" hidden></section>
   <section class="panel" role="tabpanel" id="p-shp" aria-labelledby="t-shp" hidden></section>
+  <section class="panel" role="tabpanel" id="p-cho" aria-labelledby="t-cho" hidden></section>
   <section class="panel" role="tabpanel" id="p-dly" aria-labelledby="t-dly" hidden></section>
+
+  <section class="panel" role="tabpanel" id="p-cmp" aria-labelledby="t-cmp" hidden></section>
 
   <section class="panel" role="tabpanel" id="p-export" aria-labelledby="t-export" hidden>
     <div style="display:flex;flex-direction:column;gap:6px">
@@ -415,6 +428,8 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
     rev:  merge(mk(), { on: false, ftype: 0, freq: 1000, er: 40, dry: 100, wet: 30, lc: 20, hc: 12000, pre: 0, size: 2.5, decay: 3, level: 0 }),
     dist: merge(mk(), { on: false, preset: 1, amount: 60, type: 0, ftype: 1, freq: 12000, mix: 100, lc: 20, level: -6 }),
     shp:  merge(mk(), { on: false, preset: 0, type: 0, amount: 40, ftype: 1, freq: 12000, mix: 100, level: -3 }),
+    cho:  merge(mk(), { on: false, rate: 0.84, depth: 60, stereo: 100, mix: 60 }),
+    cmp:  merge(mk(), { on: false, ing: 0, thr: -20, ratio: 4, atk: 18, hold: 0, rel: 186, level: 0 }),
     dly:  merge(mk(), { on: false, ftype: 0, freq: 1000, fb: 35, tone: 6000, lc: 20, level: -10 })
   };
   var S = clone(DEF);
@@ -482,6 +497,25 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
         GAIN, GATE
       ] }
     ] },
+    cho: { title: 'Chorus', text: 'Thickens the sound by mixing in slightly detuned, moving copies.', sections: [
+      { cls: 'knobrow', ctl: [
+        { k: 'rate', label: 'Rate', min: 0.05, max: 10, step: 0.01, unit: ' Hz', kind: 'knob', log: true },
+        { k: 'depth', label: 'Depth', min: 0, max: 100, step: 1, unit: ' %', kind: 'knob' },
+        { k: 'stereo', label: 'Stereo', min: 0, max: 100, step: 1, unit: ' %', kind: 'knob' },
+        { k: 'mix', label: 'Mix', min: 0, max: 100, step: 1, unit: ' %', kind: 'knob' }
+      ] }
+    ] },
+    cmp: { title: 'Compressor', text: 'Evens out the volume: loud peaks are pushed down, so the whole sound can be raised.', sections: [
+      { cls: 'vsrow dense', ctl: [
+        { k: 'ing', label: 'Input gain', min: -24, max: 24, step: 0.5, unit: ' dB', dec: 1, kind: 'vs' },
+        { k: 'thr', label: 'Thresh', min: -60, max: 0, step: 0.5, unit: ' dB', dec: 1, kind: 'vs' },
+        { k: 'ratio', label: 'Ratio', min: 1, max: 20, step: 0.5, unit: ':1', dec: 1, kind: 'vs' },
+        { k: 'atk', label: 'Attack', min: 0, max: 100, step: 1, unit: ' ms', dec: 1, kind: 'vs' },
+        { k: 'hold', label: 'Hold', min: 0, max: 200, step: 1, unit: ' ms', dec: 1, kind: 'vs' },
+        { k: 'rel', label: 'Release', min: 10, max: 1000, step: 1, unit: ' ms', dec: 1, kind: 'vs', log: true },
+        { k: 'level', label: 'Level', min: -24, max: 12, step: 0.5, unit: ' dB', dec: 1, kind: 'vs' }
+      ] }
+    ] },
     dly: { title: 'Delay', text: 'An echo that follows the tempo.', sections: [
       { cls: 'knobrow', ctl: [
         { k: 'level', label: 'Level', min: -48, max: 6, step: 0.5, unit: ' dB', kind: 'knob', offmin: true },
@@ -495,8 +529,8 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
       ] }
     ] }
   };
-  var NAMES = { eq: 'EQ', rev: 'Reverb', dist: 'Distortion', shp: 'Wave Shaper', dly: 'Delay' };
-  var KEYS = ['eq', 'rev', 'dist', 'shp', 'dly'];
+  var NAMES = { eq: 'EQ', rev: 'Reverb', dist: 'Distortion', shp: 'Wave Shaper', cho: 'Chorus', cmp: 'Compressor', dly: 'Delay' };
+  var KEYS = ['eq', 'rev', 'dist', 'shp', 'cho', 'dly', 'cmp'];
   var MAXPTS = 100, MAXREG = 50;
 
   var buf = null, fileName = '', actx = null, live = null, playing = false;
@@ -557,6 +591,10 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
       'Adds space to the sound, as if it played in a room.': 'Teret ad a hangnak, mintha teremben szólna.',
       'Pick a type that sets the distortion, then fine-tune it.': 'Válassz típust, ami beállítja a torzítást, utána finomhangolhatod.',
       'Bends the shape of the wave to add new harmonics and a metallic edge.': 'Meghajlítja a hullám alakját, így új felhangokat és fémes élt ad a hangnak.',
+      'Thickens the sound by mixing in slightly detuned, moving copies.': 'Vastagítja a hangot: halványan elhangolt, mozgó másolatokat kever hozzá.',
+      'Evens out the volume: loud peaks are pushed down, so the whole sound can be raised.': 'Kiegyenlíti a hangerőt: a hangos csúcsokat lenyomja, így az egész hang feljebb vehető.',
+      'Pitch': 'Hangmagasság',
+      'Key': 'Hangnem',
       'An echo that follows the tempo.': 'Visszhang, ami a tempóhoz igazodik.',
       'The effect only plays when the sound is louder than this. When Off, it always plays.': 'A hatás csak akkor szól, ha a hang hangosabb ennél. Ki állásban mindig szól.',
       'Original BPM': 'Eredeti BPM', 'New BPM': 'Új BPM',
@@ -701,6 +739,10 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
       'Adds space to the sound, as if it played in a room.': 'Da espacio al sonido, como si sonara en una sala.',
       'Pick a type that sets the distortion, then fine-tune it.': 'Elige un tipo que ajuste la distorsión y luego afínala.',
       'Bends the shape of the wave to add new harmonics and a metallic edge.': 'Dobla la forma de la onda para añadir nuevos armónicos y un filo metálico.',
+      'Thickens the sound by mixing in slightly detuned, moving copies.': 'Engrosa el sonido mezclando copias ligeramente desafinadas y en movimiento.',
+      'Evens out the volume: loud peaks are pushed down, so the whole sound can be raised.': 'Iguala el volumen: baja los picos fuertes, así se puede subir todo el sonido.',
+      'Pitch': 'Tono',
+      'Key': 'Tonalidad',
       'An echo that follows the tempo.': 'Un eco que sigue el tempo.',
       'The effect only plays when the sound is louder than this. When Off, it always plays.': 'El efecto solo suena cuando el sonido supera este nivel. En Off suena siempre.',
       'Original BPM': 'BPM original', 'New BPM': 'BPM nuevo',
@@ -845,6 +887,10 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
       'Adds space to the sound, as if it played in a room.': 'Gibt dem Klang Raum, als würde er in einem Saal spielen.',
       'Pick a type that sets the distortion, then fine-tune it.': 'Wähle einen Typ, der die Verzerrung festlegt, und stimme sie dann fein ab.',
       'Bends the shape of the wave to add new harmonics and a metallic edge.': 'Verbiegt die Form der Welle und fügt neue Obertöne und einen metallischen Biss hinzu.',
+      'Thickens the sound by mixing in slightly detuned, moving copies.': 'Macht den Klang dicker, indem leicht verstimmte, bewegte Kopien beigemischt werden.',
+      'Evens out the volume: loud peaks are pushed down, so the whole sound can be raised.': 'Gleicht die Lautstärke aus: laute Spitzen werden gesenkt, sodass der ganze Klang lauter werden kann.',
+      'Pitch': 'Tonhöhe',
+      'Key': 'Tonart',
       'An echo that follows the tempo.': 'Ein Echo, das dem Tempo folgt.',
       'The effect only plays when the sound is louder than this. When Off, it always plays.': 'Der Effekt wirkt nur, wenn das Signal lauter als dieser Wert ist. Bei Off wirkt er immer.',
       'Original BPM': 'Original-BPM', 'New BPM': 'Neue BPM',
@@ -971,7 +1017,7 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
     if (unit === ' Hz' && n >= 1000) return (n / 1000).toLocaleString('en-US', { maximumFractionDigits: 2 }) + ' kHz';
     if (k === 'gate' && n <= -80) return 'Off';
     if (c && c.offmin && n <= c.min) return 'Off';
-    var t = n.toLocaleString('en-US', { maximumFractionDigits: 2 });
+    var t = c && c.dec != null ? n.toFixed(c.dec) : n.toLocaleString('en-US', { maximumFractionDigits: 2 });
     if (unit === ' dB' && n > 0) t = '+' + t;
     return t + unit;
   }
@@ -1531,12 +1577,14 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
     best.sure = best.score >= 0.55 && best.margin >= 0.03;
     return best;
   }
-  function updateKeyUI() {
-    buildKeySel();
+  function camelotOf(tonic, minor) { var maj = minor ? (tonic + 3) % 12 : tonic; return (((maj * 7) % 12) + 7) % 12 + 1 + (minor ? 'A' : 'B'); }
+  function updateKeyUI(skip) {
+    if (skip !== true) buildKeySel();
     var el = $('#key-out'); if (!el) return;
     if (!buf) { el.textContent = '–'; return; }
     if (!keyInfo) { el.textContent = t('Could not detect a key'); return; }
-    var nm = KEYNAMES[keyInfo.tonic] + ' ' + t(keyInfo.minor ? 'minor' : 'major') + ' · ' + keyInfo.camelot;
+    var tn = (keyInfo.tonic + (pitchView || 0) + 120) % 12;
+    var nm = KEYNAMES[tn] + ' ' + t(keyInfo.minor ? 'minor' : 'major') + ' · ' + camelotOf(tn, keyInfo.minor);
     el.textContent = keyInfo.sure ? nm : t('Unclear, best guess: {key}', { key: nm });
   }
 
@@ -1701,17 +1749,13 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
     for (i = 0; i < n; i++) y[i] = cubic(out, (i + N) * rr);
     return y;
   }
+  var pitchView = 0;
+  function pitchText(d) { return d === 0 ? t('Original') : t('{n} semitones', { n: d > 0 ? '+' + d : String(d) }); }
   function buildKeySel() {
-    var sel = $('#key-to'); if (!sel) return;
-    sel.replaceChildren();
-    for (var d = -6; d <= 5; d++) {
-      var o = document.createElement('option'), sg = d > 0 ? '+' + d : String(d), txt;
-      if (keyInfo) txt = KEYNAMES[(keyInfo.tonic + d + 12) % 12] + ' ' + t(keyInfo.minor ? 'minor' : 'major') + (d === 0 ? ' (' + t('original') + ')' : ' (' + sg + ')');
-      else txt = d === 0 ? t('Original') : t('{n} semitones', { n: sg });
-      o.value = String(d); o.textContent = txt; if (d === curShift) o.selected = true;
-      sel.append(o);
-    }
-    sel.disabled = !buf || shifting;
+    var sl = $('#key-to'); if (!sl) return;
+    pitchView = curShift; sl.value = String(curShift);
+    sl.disabled = !buf || shifting;
+    $('#pitch-val').textContent = pitchText(curShift);
   }
   async function setShift(d) {
     if (!origBuf || shifting) { buildKeySel(); return; }
@@ -1741,6 +1785,7 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
     if (!failedShift) ok(d === 0 ? t('Back to the original pitch.') : t('Pitch shifted: {n} semitones.', { n: d > 0 ? '+' + d : String(d) }));
     if (wasPlaying) { var keep = startPos; startPos = p; startPlay(); startPos = keep; }
   }
+  $('#key-to').addEventListener('input', function () { pitchView = Number(this.value); $('#pitch-val').textContent = pitchText(pitchView); updateKeyUI(true); });
   $('#key-to').addEventListener('change', function () { setShift(Number(this.value)); });
 
   /* ---------- gate: a hang hangosságából számolt nyitás-zárás ---------- */
@@ -1887,8 +1932,18 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
     g.dSum.connect(g.sDry); g.sDry.connect(g.sSum);
     g.dSum.connect(g.sG); g.sG.connect(g.sShaper); g.sShaper.connect(g.sDC); g.sDC.connect(g.sTone);
     g.sTone.connect(g.sL); g.sL.connect(g.sWet); g.sWet.connect(g.sSum);
-    g.sSum.connect(g.rDry); g.rDry.connect(g.rSum);
-    g.sSum.connect(g.rSend); g.rSend.connect(g.pre);
+    /* Chorus */
+    g.cDry = gn(ctx); g.cWet = gn(ctx); g.cSum = gn(ctx);
+    g.cA = ctx.createDelay(0.06); g.cB = ctx.createDelay(0.06); g.cA.delayTime.value = 0.014; g.cB.delayTime.value = 0.014;
+    g.lfo = ctx.createOscillator(); g.lfo.type = 'sine'; g.lfoA = gn(ctx); g.lfoB = gn(ctx);
+    g.lfo.connect(g.lfoA); g.lfo.connect(g.lfoB); g.lfoA.connect(g.cA.delayTime); g.lfoB.connect(g.cB.delayTime);
+    g.pA = ctx.createStereoPanner(); g.pB = ctx.createStereoPanner();
+    g.sSum.connect(g.cDry); g.cDry.connect(g.cSum);
+    g.sSum.connect(g.cA); g.cA.connect(g.pA); g.pA.connect(g.cWet);
+    g.sSum.connect(g.cB); g.cB.connect(g.pB); g.pB.connect(g.cWet);
+    g.cWet.connect(g.cSum); g.lfo.start();
+    g.cSum.connect(g.rDry); g.rDry.connect(g.rSum);
+    g.cSum.connect(g.rSend); g.rSend.connect(g.pre);
     g.rHP.connect(g.rDamp); g.rDamp.connect(g.rF); g.rF.connect(g.rL); g.rL.connect(g.rSum);
     [0.011, 0.017, 0.023, 0.029, 0.037].forEach(function (t, i) {
       var d = ctx.createDelay(0.1), tg = gn(ctx);
@@ -1902,7 +1957,12 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
     g.rSum.connect(g.yDry); g.yDry.connect(g.ySum);
     g.rSum.connect(g.dSend); g.dSend.connect(g.dly); g.dly.connect(g.fbTone); g.fbTone.connect(g.hpF); g.hpF.connect(g.fb); g.fbSat = ctx.createWaveShaper(); g.fbSat.curve = satCurve(); g.fb.connect(g.fbSat); g.fbSat.connect(g.dly);
     g.dly.connect(g.yF); g.yF.connect(g.yL); g.yL.connect(g.ySum);
-    g.ySum.connect(g.norm);
+    /* Compressor */
+    g.kDry = gn(ctx); g.kIn = gn(ctx); g.kOut = gn(ctx); g.kWet = gn(ctx); g.kSum = gn(ctx);
+    g.comp = ctx.createDynamicsCompressor(); g.comp.knee.value = 0;
+    g.ySum.connect(g.kDry); g.kDry.connect(g.kSum);
+    g.ySum.connect(g.kIn); g.kIn.connect(g.comp); g.comp.connect(g.kOut); g.kOut.connect(g.kWet); g.kWet.connect(g.kSum);
+    g.kSum.connect(g.norm);
     if (isLive) {
       /* biztonsági limiter + figyelő: ne tudjon elszállni a hang */
       g.lim = ctx.createDynamicsCompressor();
@@ -1959,6 +2019,13 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
     sch('shp', g.sWet.gain, function (a) { return a * sm; });
     sch('shp', g.sDry.gain, function (a) { return 1 - a * sm; });
 
+    var ch = S.cho, cm = ch.mix / 100;
+    set(g.lfo.frequency, ch.rate);
+    set(g.lfoA.gain, ch.depth / 100 * 0.006); set(g.lfoB.gain, -ch.depth / 100 * 0.006);
+    set(g.pA.pan, -ch.stereo / 100); set(g.pB.pan, ch.stereo / 100);
+    sch('cho', g.cWet.gain, function (a) { return Math.sin(a * cm * PI / 2) * 0.8; });
+    sch('cho', g.cDry.gain, function (a) { return Math.cos(a * cm * PI / 2); });
+
     var r = S.rev;
     if (r.on) {
       var rk = r.size + '|' + r.decay;
@@ -1987,6 +2054,16 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
     set(g.fb.gain, Math.min(0.85, y.fb / 100)); set(g.fbTone.frequency, y.tone); set(g.hpF.frequency, y.lc);
     set(g.yL.gain, y.level <= -48 ? 0 : dbg(y.level));
     sch('dly', g.dSend.gain, function (a) { return a * dbg(y.gain); });
+
+    var k = S.cmp;
+    set(g.comp.threshold, k.thr); set(g.comp.ratio, k.ratio); set(g.comp.attack, k.atk / 1000);
+    set(g.comp.release, Math.min(1, (k.rel + k.hold * 0.6) / 1000));
+    set(g.kIn.gain, dbg(k.ing));
+    /* a böngésző beépített kompresszora automatikusan hangosít: ezt visszavesszük, hogy a Level legyen az egyetlen utóhangerő */
+    var fullRange = Math.pow(10, (k.thr - k.thr / k.ratio) / 20);
+    set(g.kOut.gain, dbg(k.level) * Math.pow(fullRange, 0.6));
+    sch('cmp', g.kWet.gain, function (a) { return a; });
+    sch('cmp', g.kDry.gain, function (a) { return 1 - a; });
 
     set(g.norm.gain, gainNorm);
   }
@@ -2062,6 +2139,7 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
     if (live) {
       playing = false;
       try { live.src.onended = null; live.src.stop(); } catch (e) {}
+      try { live.lfo.stop(); } catch (e) {}
       try { live.norm.disconnect(); } catch (e) {}
       try { live.lim.disconnect(); live.ana.disconnect(); } catch (e) {}
       try { live.dly.disconnect(); live.fb.disconnect(); } catch (e) {}
