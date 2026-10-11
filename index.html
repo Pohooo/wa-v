@@ -1851,7 +1851,7 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
     }
     curShift = d; rendered = null; updateExport(); buildKeySel();
     if (!failedShift) ok(d === 0 ? t('Back to the original pitch.') : t('Pitch shifted: {n} semitones.', { n: d > 0 ? '+' + d : String(d) }));
-    if (wasPlaying) { var keep = startPos; startPos = p; startPlay(); startPos = keep; }
+    if (wasPlaying) startPlay(p);
   }
   $('#key-to').addEventListener('input', function () { pitchView = Number(this.value); $('#pitch-val').textContent = pitchText(pitchView); updateKeyUI(true); });
   $('#key-to').addEventListener('change', function () { setShift(Number(this.value)); });
@@ -1985,7 +1985,7 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
     g.bq[3].connect(g.eqWet); g.eqWet.connect(g.eqSum);
     /* Distortion */
     g.dDry = gn(ctx); g.dG = gn(ctx); g.hpD = bq(ctx, 'highpass', 20, 0.7);
-    g.shaper = ctx.createWaveShaper(); g.shaper.oversample = '4x';
+    g.shaper = ctx.createWaveShaper(); g.shaper.oversample = isLive ? '2x' : '4x';
     g.dTone = bq(ctx, 'lowpass', 12000, 0.7); g.dL = gn(ctx); g.dWet = gn(ctx); g.dSum = gn(ctx);
     g.eqSum.connect(g.dDry); g.dDry.connect(g.dSum);
     g.eqSum.connect(g.dG); g.dG.connect(g.hpD); g.hpD.connect(g.shaper); g.shaper.connect(g.dTone);
@@ -1995,7 +1995,7 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
     g.rHP = bq(ctx, 'highpass', 20, 0.7); g.rDamp = bq(ctx, 'lowpass', 12000, 0.7);
     g.rL = gn(ctx); g.rSum = gn(ctx); g.erSum = gn(ctx); g.rF = bq(ctx, 'allpass', 1000, 0.7);
     /* Wave Shaper */
-    g.sDry = gn(ctx); g.sG = gn(ctx); g.sShaper = ctx.createWaveShaper(); g.sShaper.oversample = '4x';
+    g.sDry = gn(ctx); g.sG = gn(ctx); g.sShaper = ctx.createWaveShaper(); g.sShaper.oversample = isLive ? '2x' : '4x';
     g.sDC = bq(ctx, 'highpass', 20, 0.7); g.sTone = bq(ctx, 'lowpass', 12000, 0.7); g.sL = gn(ctx); g.sWet = gn(ctx); g.sSum = gn(ctx);
     g.dSum.connect(g.sDry); g.sDry.connect(g.sSum);
     g.dSum.connect(g.sG); g.sG.connect(g.sShaper); g.sShaper.connect(g.sDC); g.sDC.connect(g.sTone);
@@ -2171,7 +2171,17 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
   /* ---------- lejátszás ---------- */
   function curPos() {
     if (!buf || !actx || !playing) return startPos;
-    return clamp(pos0 + (actx.currentTime - t0) * curRate, 0, buf.duration);
+    var raw = pos0 + (actx.currentTime - t0) * curRate, d = buf.duration;
+    if (loopOn && live && raw >= d) { var ls = live.ls || 0, len = d - ls; if (len > 0.001) raw = ls + ((raw - ls) % len); }
+    return clamp(raw, 0, d);
+  }
+  /* egy lejátszó gráf teljes leállítása és lekapcsolása (hogy ne maradjon háttérben futó példány) */
+  function killGraph(g) {
+    if (!g) return;
+    try { g.src.onended = null; g.src.stop(); } catch (e) {}
+    try { g.lfo.stop(); } catch (e) {}
+    try { g.src.disconnect(); } catch (e) {}
+    ['dSend', 'norm', 'lim', 'ana', 'kSum', 'ySum', 'rSum'].forEach(function (k) { try { g[k] && g[k].disconnect(); } catch (e) {} });
   }
   function curFrac() { return buf ? curPos() / buf.duration : 0; }
   function updatePH(show) {
@@ -2197,7 +2207,7 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
     for (var i = 0; i < anaBuf.length; i++) {
       var v = anaBuf[i];
       if (v !== v || Math.abs(v) > 4) {
-        if (resets++ < 5) { startPos0 = curPos(); var keep = startPos; startPos = startPos0; startPlay(); startPos = keep; info(t('The audio ran away, I restarted playback.')); }
+        if (resets++ < 5) { startPlay(curPos()); info(t('The audio ran away, I restarted playback.')); }
         return;
       }
     }
@@ -2210,21 +2220,24 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
     updatePH(true);
     raf = requestAnimationFrame(tick);
   }
-  async function startPlay(keepOld) {
+  async function startPlay(fromOv) {
     if (!buf) { err(t('Nothing to play.'), t('Upload a WAV file on the Home tab first.')); return; }
-    if (keepOld !== true) stopPlay();
+    stopPlay();
     try {
       if (!actx || actx.state === 'closed') actx = makeCtx(buf.sampleRate);
       if (actx.state !== 'running') { try { await actx.resume(); } catch (e) {} }
       if (actx.state !== 'running') { try { actx.close(); } catch (e) {} actx = makeCtx(buf.sampleRate); await actx.resume(); }
       var g = makeGraph(actx, buf, true);
-      var from = startPos >= buf.duration - 0.02 ? 0 : startPos;
+      var ls0 = startPos >= buf.duration - 0.02 ? 0 : startPos;
+      var from = typeof fromOv === 'number' ? Math.min(fromOv, buf.duration - 0.005) : ls0;
       g.src.playbackRate.value = rate();
       applyAll(g, previewGain(), from);
+      /* a végtelenített lejátszás a böngésző saját hurkával megy: hézagmentes, és nem épül újra a gráf */
+      g.ls = ls0; g.src.loopStart = ls0; g.src.loopEnd = buf.duration; g.src.loop = loopOn;
       g.src.onended = function () {
         if (live !== g || !playing) return;
-        if (loopOn) { cancelAnimationFrame(raf); startPlay(true); }
-        else { playing = false; cancelAnimationFrame(raf); drawWave(0); updatePH(false); }
+        killGraph(g); live = null;
+        playing = false; cancelAnimationFrame(raf); drawWave(0); updatePH(false);
       };
       g.src.start(0, from);
       live = g; playing = true; pos0 = from; t0 = actx.currentTime; curRate = rate();
@@ -2235,15 +2248,7 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
     }
   }
   function stopPlay() {
-    if (live) {
-      playing = false;
-      try { live.src.onended = null; live.src.stop(); } catch (e) {}
-      try { live.lfo.stop(); } catch (e) {}
-      try { live.norm.disconnect(); } catch (e) {}
-      try { live.lim.disconnect(); live.ana.disconnect(); } catch (e) {}
-      try { live.dSend.disconnect(); } catch (e) {}
-      live = null;
-    }
+    if (live) { playing = false; killGraph(live); live = null; }
     playing = false; cancelAnimationFrame(raf);
     if (buf) drawWave(0);
     updatePH(false);
@@ -2253,6 +2258,7 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
   $('#loop').addEventListener('click', function () {
     loopOn = !loopOn;
     this.setAttribute('aria-pressed', loopOn ? 'true' : 'false');
+    if (live && playing) { try { live.src.loop = loopOn; } catch (e) {} }
   });
 
   /* kezdőpont: a sávon átmenő vonal */
