@@ -1,0 +1,15 @@
+{
+  "name": "wa-v WAV editor",
+  "short_name": "wa-v",
+  "description": "A simple, free WAV editor in your browser. Nothing is uploaded.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#08080f",
+  "theme_color": "#08080f",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}
