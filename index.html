@@ -400,6 +400,16 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
     </div>
 
     <div>
+      <h3 data-i18n="Length">Length</h3>
+      <select id="lenmode">
+        <option value="cut" data-i18n="Original length, tail cut off">Original length, tail cut off</option>
+        <option value="wrap" data-i18n="Original length, tail wrapped to the start (for loops)">Original length, tail wrapped to the start (for loops)</option>
+        <option value="full" data-i18n="Longer, with the full tail">Longer, with the full tail</option>
+      </select>
+      <span class="hint" data-i18n="Wrapped: the tail that would run past the end is mixed into the start, so the file stays the same length and loops with its tail, like a repeating kick.">Wrapped: the tail that would run past the end is mixed into the start, so the file stays the same length and loops with its tail, like a repeating kick.</span>
+    </div>
+
+    <div>
       <h3 data-i18n="Volume">Volume</h3>
       <label class="check"><input type="checkbox" id="norm" checked> <span data-i18n="Normalize (the loudest point will be -1 dB)">Normalize (the loudest point will be -1 dB)</span></label>
     </div>
@@ -454,7 +464,7 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
   function clone(o) { return JSON.parse(JSON.stringify(o)); }
 
   var DEF = {
-    norm: true, origBpm: 120, newBpm: 120, div: 0.25,
+    norm: true, lenMode: 'cut', origBpm: 120, newBpm: 120, div: 0.25,
     eq: {
       on: false, gate: -80, regions: [],
       bands: [
@@ -614,6 +624,11 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
       'Beat division': 'Ütem osztás',
       'The Delay timing uses this.': 'A Delay időzítése ezt használja.',
       'Volume': 'Hangerő',
+      'Original length, tail cut off': 'Eredeti hossz, a lecsengés levágva',
+      'Original length, tail wrapped to the start (for loops)': 'Eredeti hossz, a lecsengés az elejére hajtva (loophoz)',
+      'Longer, with the full tail': 'Hosszabb, teljes lecsengéssel',
+      'Wrapped: the tail that would run past the end is mixed into the start, so the file stays the same length and loops with its tail, like a repeating kick.': 'Hajtva: a végén túlnyúló lecsengés a fájl elejére keveredik, így a fájl ugyanolyan hosszú marad, és a lecsengésével együtt hurkolható, mint egy ismétlődő kick.',
+      'Keep the original length (the Reverb and Delay tail is cut off)': 'Eredeti hossz megtartása (a Reverb és a Delay lecsengése le lesz vágva)',
       'Normalize (the loudest point will be -1 dB)': 'Normalizálás (a leghangosabb pont -1 dB lesz)',
       'The finished WAV is made here with your settings.': 'Itt készül el a kész WAV a beállításaiddal.',
       'What is included': 'Ami bekerül',
@@ -762,6 +777,11 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
       'Beat division': 'División del pulso',
       'The Delay timing uses this.': 'El tiempo del Delay usa este valor.',
       'Volume': 'Volumen',
+      'Original length, tail cut off': 'Duración original, cola cortada',
+      'Original length, tail wrapped to the start (for loops)': 'Duración original, cola plegada al inicio (para loops)',
+      'Longer, with the full tail': 'Más larga, con la cola completa',
+      'Wrapped: the tail that would run past the end is mixed into the start, so the file stays the same length and loops with its tail, like a repeating kick.': 'Plegada: la cola que pasaría del final se mezcla al inicio, así el archivo mantiene su duración y hace loop con su cola, como un bombo que se repite.',
+      'Keep the original length (the Reverb and Delay tail is cut off)': 'Mantener la duración original (se corta la cola de Reverb y Delay)',
       'Normalize (the loudest point will be -1 dB)': 'Normalizar (el punto más fuerte quedará en -1 dB)',
       'The finished WAV is made here with your settings.': 'Aquí se crea el WAV final con tus ajustes.',
       'What is included': 'Qué se incluye',
@@ -910,6 +930,11 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
       'Beat division': 'Taktteilung',
       'The Delay timing uses this.': 'Das Timing des Delays nutzt diesen Wert.',
       'Volume': 'Lautstärke',
+      'Original length, tail cut off': 'Ursprüngliche Länge, Ausklingen abgeschnitten',
+      'Original length, tail wrapped to the start (for loops)': 'Ursprüngliche Länge, Ausklingen an den Anfang gelegt (für Loops)',
+      'Longer, with the full tail': 'Länger, mit komplettem Ausklingen',
+      'Wrapped: the tail that would run past the end is mixed into the start, so the file stays the same length and loops with its tail, like a repeating kick.': 'Umgelegt: Das Ausklingen, das über das Ende hinausginge, wird an den Anfang gemischt. So bleibt die Datei gleich lang und lässt sich mit ihrem Ausklingen loopen, wie ein sich wiederholender Kick.',
+      'Keep the original length (the Reverb and Delay tail is cut off)': 'Ursprüngliche Länge beibehalten (das Ausklingen von Reverb und Delay wird abgeschnitten)',
       'Normalize (the loudest point will be -1 dB)': 'Normalisieren (die lauteste Stelle liegt dann bei -1 dB)',
       'The finished WAV is made here with your settings.': 'Hier entsteht die fertige WAV mit deinen Einstellungen.',
       'What is included': 'Was enthalten ist',
@@ -1511,6 +1536,7 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
     changed();
   });
   $('#div').addEventListener('change', function () { S.div = Number(this.value); changed(); });
+  $('#lenmode').addEventListener('change', function () { S.lenMode = this.value; rendered = null; updateExport(); });
   $('#norm').addEventListener('change', function () { S.norm = this.checked; changed(); });
 
 
@@ -2606,13 +2632,31 @@ canvas.grid { display: block; width: 100%; height: 190px; border: 1px solid var(
       var OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
       if (!OAC) throw new Error(t('the browser does not support offline rendering.'));
       var sr = buf.sampleRate, rt = rate();
-      var dur = buf.duration / rt + tailSeconds();
+      var dur = buf.duration / rt + (S.lenMode === 'cut' ? 0 : tailSeconds());
       var off = new OAC(2, Math.ceil(dur * sr), sr);
       var g = makeGraph(off, buf, false);
       g.src.playbackRate.value = rt;
       applyAll(g, 1, 0);
       g.src.start(0);
       var out = await off.startRendering();
+      if (S.lenMode === 'cut' && (S.rev.on || S.dly.on)) {
+        /* a lecsengés levágásánál rövid kifuttatás, hogy ne kattanjon a vége */
+        var fl = Math.min(out.length, Math.round(out.sampleRate * 0.012));
+        for (var fc = 0; fc < out.numberOfChannels; fc++) {
+          var fd = out.getChannelData(fc);
+          for (var fi = 0; fi < fl; fi++) fd[out.length - 1 - fi] *= fi / fl;
+        }
+      }
+      if (S.lenMode === 'wrap' && out.length > Math.ceil(buf.duration / rt * sr)) {
+        /* a végén túlnyúló lecsengést visszahajtjuk a fájl elejére: ugyanolyan hosszú marad, és hurokban illeszkedik */
+        var N = Math.max(1, Math.ceil(buf.duration / rt * sr));
+        var wb = new AudioBuffer({ length: N, numberOfChannels: out.numberOfChannels, sampleRate: out.sampleRate });
+        for (var wc = 0; wc < out.numberOfChannels; wc++) {
+          var src = out.getChannelData(wc), dst = wb.getChannelData(wc);
+          for (var wi = 0; wi < src.length; wi++) dst[wi % N] += src[wi];
+        }
+        out = wb;
+      }
       var pk = 0;
       for (var c = 0; c < out.numberOfChannels; c++) {
         var d = out.getChannelData(c);
