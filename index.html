@@ -366,6 +366,26 @@ html { background: var(--bg); }
 .trkfx h3 { margin: 0; }
 .trkclip .btn { min-height: 38px; padding: 4px 12px; font-size: .75rem; }
 .logo .goggles { width: min(100%, 300px); margin-inline: auto; border: 2px solid rgba(255,255,255,.18); box-shadow: 0 0 28px rgba(255,10,90,.45); }
+
+/* Tracks v2 */
+.tsw { flex: 1; position: relative; min-height: 22px; border-radius: 12px; border: 1px solid var(--line); background: #3b3f55; padding: 0; cursor: pointer; transition: background .15s; }
+.tsw i { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #b9bdd6; transition: left .15s, background .15s; }
+.tsw[aria-checked="true"] { background: #1f9e62; border-color: #3dff9a; }
+.tsw[aria-checked="true"] i { left: calc(100% - 18px); background: #eafff3; }
+.thead.off .tname { opacity: .55; }
+.tlane.off .clip { opacity: .4; }
+.rulerlane { touch-action: none; }
+.clip.sel { outline: 2px solid #b5e5dc; background: color-mix(in srgb, var(--tc) 34%, rgba(8,8,15,.5)) !important; }
+.chandle { position: absolute; width: 36px; height: 36px; z-index: 6; touch-action: none; cursor: ew-resize; display: flex; align-items: center; justify-content: center; }
+.chandle i { display: block; width: 24px; height: 24px; border-radius: 50%; background: #b5e5dc; box-shadow: 0 0 0 2px rgba(8,8,15,.7), 0 0 10px rgba(181,229,220,.6); }
+.chandle.hs i { background: #f7e11a; }
+.cfloat { position: absolute; top: -36px; z-index: 7; display: flex; gap: 4px; }
+.cfloat button { min-height: 32px; padding: 3px 10px; border-radius: 16px; border: 1px solid #b5e5dc; background: rgba(20,36,34,.92); color: #d7fff6; font: 700 .72rem var(--f-body); cursor: pointer; }
+.tmk { position: absolute; top: 0; bottom: 0; z-index: 3; pointer-events: none; background: rgba(25,227,255,.12); border-left: 2px solid var(--cyan); border-right: 2px solid var(--cyan); }
+.trkedit { border: 1px solid var(--line); background: rgba(12,12,26,.7); padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.trkedit[hidden] { display: none !important; }
+.trkedit h3 { margin: 0; }
+.eccv { width: 100%; height: 190px; display: block; touch-action: none; border: 1px solid var(--line); }
 </style>
 
 </head>
@@ -492,6 +512,7 @@ html { background: var(--bg); }
     <div class="trktop" id="trk-top"></div>
     <div class="trkscroll" id="trk-scroll"><div class="trkin" id="trk-in"></div></div>
     <div class="lanebar trkclip" id="trk-clip"></div>
+    <div class="trkedit" id="trk-edit" hidden></div>
     <div class="trkfx" id="trk-fx" hidden></div>
     <div class="row transport">
       <button class="ibtn play" id="trk-play" type="button" aria-label="Play" data-i18n-aria="Play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5v17l14-8.5z" fill="currentColor"/></svg></button>
@@ -675,6 +696,7 @@ html { background: var(--bg); }
   var LANGS = ['en', 'hu', 'es', 'de'];
   var DICT = {
     hu: {
+      "Copy": "Másolás", "Edit": "Szerkesztés", "Clear loop": "Ismétlés törlése", "Switch the track on or off": "Sáv be- és kikapcsolása", "Edit sound": "Hang szerkesztése", "Add point": "Pont hozzáadása", "Reset": "Alaphelyzet", "Tap the picture to add a point. Drag a point to set the volume there: top is full volume, bottom is silent.": "Koppints a képre pont hozzáadásához. Húzd a pontot a hangerő beállításához: fent teljes hangerő, lent csend.", "Tap a sound to select it. Double tap or press Edit to open it. Hold the ruler and drag to mark the part that repeats.": "Koppints egy hangra a kijelöléshez. Dupla koppintással vagy az Edit gombbal megnyílik. Tartsd nyomva a vonalzót és húzd el, hogy kijelöld az ismétlődő részt.", "Switch on at least one track that has a sound.": "Kapcsolj be legalább egy sávot, amin van hang.",
       'Tracks': 'Sávok',
       'Build a longer sound from several sounds: send a sound here from any tab, then place and repeat it on the tracks. Everything is gone when you leave or refresh the page.': 'Több hangból hosszabbat állíthatsz össze: bármelyik fülről küldd ide a hangot, majd helyezd el és ismételd a sávokon. Az oldal elhagyásakor vagy frissítésekor minden törlődik.',
       'Send to track list': 'Küldés a track listába',
@@ -864,6 +886,7 @@ html { background: var(--bg); }
       'the browser blocked saving the file.': 'a böngésző letiltotta a fájlmentést.'
     },
     es: {
+      "Copy": "Copiar", "Edit": "Editar", "Clear loop": "Quitar bucle", "Switch the track on or off": "Activar o desactivar la pista", "Edit sound": "Editar sonido", "Add point": "Añadir punto", "Reset": "Restablecer", "Tap the picture to add a point. Drag a point to set the volume there: top is full volume, bottom is silent.": "Toca la imagen para añadir un punto. Arrastra un punto para fijar el volumen: arriba es volumen máximo, abajo es silencio.", "Tap a sound to select it. Double tap or press Edit to open it. Hold the ruler and drag to mark the part that repeats.": "Toca un sonido para seleccionarlo. Doble toque o Editar para abrirlo. Mantén pulsada la regla y arrastra para marcar la parte que se repite.", "Switch on at least one track that has a sound.": "Activa al menos una pista que tenga un sonido.",
       'Tracks': 'Pistas',
       'Build a longer sound from several sounds: send a sound here from any tab, then place and repeat it on the tracks. Everything is gone when you leave or refresh the page.': 'Crea un sonido más largo con varios sonidos: envía un sonido aquí desde cualquier pestaña, colócalo y repítelo en las pistas. Todo se borra al salir o actualizar la página.',
       'Send to track list': 'Enviar a la lista de pistas',
@@ -1053,6 +1076,7 @@ html { background: var(--bg); }
       'the browser blocked saving the file.': 'el navegador bloqueó el guardado del archivo.'
     },
     de: {
+      "Copy": "Kopieren", "Edit": "Bearbeiten", "Clear loop": "Loop löschen", "Switch the track on or off": "Spur ein- oder ausschalten", "Edit sound": "Sound bearbeiten", "Add point": "Punkt hinzufügen", "Reset": "Zurücksetzen", "Tap the picture to add a point. Drag a point to set the volume there: top is full volume, bottom is silent.": "Tippe auf das Bild, um einen Punkt zu setzen. Ziehe einen Punkt, um die Lautstärke festzulegen: oben volle Lautstärke, unten Stille.", "Tap a sound to select it. Double tap or press Edit to open it. Hold the ruler and drag to mark the part that repeats.": "Tippe auf einen Sound, um ihn auszuwählen. Doppeltippen oder Bearbeiten öffnet ihn. Lineal gedrückt halten und ziehen, um den Teil zu markieren, der sich wiederholt.", "Switch on at least one track that has a sound.": "Schalte mindestens eine Spur mit einem Sound ein.",
       'Tracks': 'Spuren',
       'Build a longer sound from several sounds: send a sound here from any tab, then place and repeat it on the tracks. Everything is gone when you leave or refresh the page.': 'Baue aus mehreren Sounds einen längeren: Sende einen Sound aus einem beliebigen Tab hierher, platziere und wiederhole ihn auf den Spuren. Beim Verlassen oder Aktualisieren der Seite ist alles weg.',
       'Send to track list': 'An Spurenliste senden',
@@ -2557,10 +2581,10 @@ html { background: var(--bg); }
   var ZOOMS = [14, 22, 34, 52, 80, 120, 180], HEADW = 78;
   var SNAPS = [[0.25, '1/4'], [0.5, '1/2'], [1, '1'], [2, '2'], [4, '4'], [8, '8']];
   var TCOL = ['#19e3ff', '#ff3d7f', '#f7e11a', '#3dff9a', '#b07cff', '#ff9a3d'];
-  var T = { bpm: 0, bars: 16, snap: 1, zoom: 3, sel: 0, selClip: null, pos: 0, posTr: -1, target: 0, loop: true, fxOpen: false, scope: 'mix', tracks: [] };
+  var T = { bpm: 0, bars: 16, snap: 1, zoom: 3, sel: 0, selClip: null, pos: 0, posTr: -1, target: 0, loop: true, fxOpen: false, scope: 'mix', mk: null, editClip: null, tracks: [] };
   var tuid = 0, tsrc = [], trkRendered = null, tctx = null, tlist = [], tmaster = null, traf = 0, ttimer = 0, tplaying = false;
   var tbase = 0, tfrom = 0, tnext = 0, ttotal = 0, tbusy = false;
-  for (var ti = 0; ti < NTR; ti++) T.tracks.push({ n: ti, clips: [], sounds: [], st: null, on: {}, vol: 0, mute: false, srcId: 0 });
+  for (var ti = 0; ti < NTR; ti++) T.tracks.push({ n: ti, clips: [], sounds: [], st: null, on: {}, vol: 0, act: false, srcId: 0 });
 
   function spb() { return 240 / (T.bpm || 120); }
   function ppb() { return ZOOMS[T.zoom]; }
@@ -2570,7 +2594,26 @@ html { background: var(--bg); }
     tsrc.push(origBuf); return tsrc.length;
   }
   function anyClips() { return T.tracks.some(function (tr) { return tr.clips.length > 0; }); }
-  function clipLen(c) { return c.snd.proc ? c.snd.proc.duration / spb() : 0; }
+  function cLen(c) { var p = c.snd.proc; if (!p) return 0; return c.len != null ? c.len : Math.max(0.02, p.duration / c.rate - c.off); }
+  function clipLen(c) { return c.snd.proc ? cLen(c) / spb() : 0; }
+  function mkClip(snd, start) { return { id: ++tuid, snd: snd, start: start, off: 0, len: null, rate: 1, env: [] }; }
+  function cloneClip(c, start) {
+    var n = mkClip(c.snd, start); n.off = c.off; n.len = c.len; n.rate = c.rate;
+    n.env = c.env.map(function (q) { return { x: q.x, y: q.y }; }); return n;
+  }
+  function endSec(only) {
+    var m = 0, sp = spb();
+    T.tracks.forEach(function (tr) {
+      if (only != null ? tr.n !== only : !tr.act) return;
+      tr.clips.forEach(function (c) { if (c.snd.proc) m = Math.max(m, c.start * sp + cLen(c)); });
+    });
+    return m;
+  }
+  function trkRange(only) {
+    var sp = spb();
+    if (T.mk) return { lo: T.mk.a * sp, hi: T.mk.b * sp };
+    return { lo: 0, hi: endSec(only) };
+  }
   function findClip(id) {
     for (var i = 0; i < NTR; i++) {
       var tr = T.tracks[i];
@@ -2655,13 +2698,13 @@ html { background: var(--bg); }
       if (!anyClips()) T.bpm = r2(clamp(S.newBpm, 40, 300));
       await trkProc(tr, snd);
       tr.sounds.push(snd);
-      var c = { id: ++tuid, snd: snd, start: 0 };
+      var c = mkClip(snd, 0);
       if (T.posTr === tr.n) c.start = T.pos;
       else tr.clips.forEach(function (o) { c.start = Math.max(c.start, Math.ceil((o.start + clipLen(o)) / T.snap - 1e-6) * T.snap); });
       c.start = r2(c.start);
       if (c.start >= MAXBARS) c.start = 0;
       if (c.start + clipLen(c) > T.bars) T.bars = Math.min(MAXBARS, Math.ceil(c.start + clipLen(c)));
-      tr.clips.push(c);
+      tr.clips.push(c); if (tr.clips.length === 1) tr.act = true;
       T.sel = tr.n; T.selClip = c.id; T.pos = c.start; T.posTr = tr.n;
       trkDirty(); trkDraw();
       ok(t('Sent to Track {n} at bar {b}.', { n: tr.n + 1, b: r2(c.start + 1) }));
@@ -2680,6 +2723,9 @@ html { background: var(--bg); }
       var b = document.createElement('button'); b.type = 'button'; b.className = 'segbtn'; b.textContent = s[1]; b.dataset.snap = s[0];
       b.setAttribute('aria-pressed', T.snap === s[0] ? 'true' : 'false'); row1.append(b);
     });
+    if (T.mk) {
+      var cl = document.createElement('button'); cl.type = 'button'; cl.className = 'segbtn'; cl.dataset.mk = 'clear'; cl.textContent = t('Clear loop'); row1.append(cl);
+    }
     var row2 = document.createElement('div'); row2.className = 'seg thin';
     function num(id, label, val, mn, mx, st) {
       var w = document.createElement('label'); w.className = 'tnum'; var sp = document.createElement('span'); sp.textContent = label;
@@ -2695,27 +2741,39 @@ html { background: var(--bg); }
   }
   function peaksOf(snd) {
     if (snd.pk) return snd.pk;
-    var d = snd.proc.getChannelData(0), n = 160, pk = new Float32Array(n), step = Math.max(1, Math.floor(d.length / n));
+    var d = snd.proc.getChannelData(0), n = 800, pk = new Float32Array(n), step = Math.max(1, Math.floor(d.length / n));
     for (var i = 0; i < n; i++) { var m = 0, s = i * step, e = Math.min(d.length, s + step); for (var j = s; j < e; j += 4) { var v = Math.abs(d[j]); if (v > m) m = v; } pk[i] = m; }
     snd.pk = pk; return pk;
   }
-  function paintClip(cv, snd, col) {
+  function envPts(c) { return c.env.slice().sort(function (a, b) { return a.x - b.x; }); }
+  function paintClip(cv, c, col) {
     var w = cv.clientWidth || 40, h = cv.clientHeight || 30;
     cv.width = Math.min(1600, Math.max(8, Math.round(w))); cv.height = h;
-    var g = cv.getContext('2d'), pk = peaksOf(snd), n = pk.length;
+    var g = cv.getContext('2d'), snd = c.snd, pk = peaksOf(snd), n = pk.length, L = cLen(c), dur = snd.proc.duration;
     g.fillStyle = col;
     for (var x = 0; x < cv.width; x++) {
-      var m = pk[Math.min(n - 1, Math.floor(x / cv.width * n))], hh = Math.max(1, m * (h - 6));
+      var bp = (c.off + x / cv.width * L) * c.rate / dur;
+      if (bp < 0 || bp >= 1) { g.fillRect(x, h / 2, 1, 1); continue; }
+      var m = pk[Math.min(n - 1, Math.floor(bp * n))], hh = Math.max(1, m * (h - 6));
       g.fillRect(x, (h - hh) / 2, 1, hh);
     }
+    if (c.env.length) {
+      var pts = envPts(c), ey = function (v) { return 3 + (1 - v) * (h - 6); };
+      g.strokeStyle = '#fff'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(0, ey(pts[0].y));
+      pts.forEach(function (q) { g.lineTo(q.x * cv.width, ey(q.y)); });
+      g.lineTo(cv.width, ey(pts[pts.length - 1].y)); g.stroke();
+    }
+  }
+  function mkDot(cls, h, x, y) {
+    var d = document.createElement('div'); d.className = 'chandle ' + cls; d.dataset.h = h;
+    d.style.left = (x - 18) + 'px'; d.style.top = (y - 18) + 'px'; d.append(document.createElement('i')); return d;
   }
   function trkDraw() {
     var inn = $('#trk-in'); if (!inn) return;
-    var P = ppb(), W = T.bars * P, sp = spb();
+    var P = ppb(), W = T.bars * P, sp = spb(), sc = $('#trk-scroll');
     inn.style.width = (HEADW + W) + 'px';
     inn.style.setProperty('--ppb', P + 'px'); inn.style.setProperty('--snapw', (P * T.snap) + 'px'); inn.style.setProperty('--qw', (P / 4) + 'px');
     inn.replaceChildren();
-    /* vonalzó: egész számok = ütem, kis vonalak = negyed */
     var ru = document.createElement('div'); ru.className = 'trow truler';
     var rh = document.createElement('div'); rh.className = 'thead'; ru.append(rh);
     var rl = document.createElement('div'); rl.className = 'tlane rulerlane'; rl.style.width = W + 'px'; rl.dataset.ruler = '1';
@@ -2725,38 +2783,57 @@ html { background: var(--bg); }
     T.tracks.forEach(function (tr) {
       var col = TCOL[tr.n % TCOL.length];
       var row = document.createElement('div'); row.className = 'trow'; row.dataset.tr = tr.n;
-      var hd = document.createElement('div'); hd.className = 'thead' + (T.sel === tr.n ? ' sel' : '') + (tr.clips.length ? ' has' : '') + (tr.mute ? ' muted' : '');
+      var hd = document.createElement('div'); hd.className = 'thead' + (T.sel === tr.n ? ' sel' : '') + (tr.clips.length ? ' has' : '') + (tr.act ? '' : ' off');
       hd.style.setProperty('--tc', col);
       var nm = document.createElement('button'); nm.type = 'button'; nm.className = 'tname'; nm.dataset.pick = tr.n; nm.textContent = t('Track {n}', { n: tr.n + 1 });
       var bt = document.createElement('div'); bt.className = 'tbtns';
       var fx = document.createElement('button'); fx.type = 'button'; fx.className = 'tmini'; fx.dataset.fx = tr.n; fx.textContent = 'FX';
       fx.setAttribute('aria-pressed', T.fxOpen && T.sel === tr.n ? 'true' : 'false');
-      var mu = document.createElement('button'); mu.type = 'button'; mu.className = 'tmini'; mu.dataset.mute = tr.n; mu.textContent = 'M'; mu.setAttribute('aria-label', t('Mute'));
-      mu.setAttribute('aria-pressed', tr.mute ? 'true' : 'false');
-      bt.append(fx, mu); hd.append(nm, bt); row.append(hd);
-      var ln = document.createElement('div'); ln.className = 'tlane'; ln.style.width = W + 'px'; ln.dataset.lane = tr.n; ln.style.setProperty('--tc', col);
+      var sw = document.createElement('button'); sw.type = 'button'; sw.className = 'tsw'; sw.dataset.act = tr.n; sw.setAttribute('role', 'switch');
+      sw.setAttribute('aria-checked', tr.act ? 'true' : 'false'); sw.setAttribute('aria-label', t('Switch the track on or off')); sw.append(document.createElement('i'));
+      bt.append(fx, sw); hd.append(nm, bt); row.append(hd);
+      var ln = document.createElement('div'); ln.className = 'tlane' + (tr.act ? '' : ' off'); ln.style.width = W + 'px'; ln.dataset.lane = tr.n; ln.style.setProperty('--tc', col);
       tr.clips.forEach(function (c) {
         if (!c.snd.proc) return;
-        var el = document.createElement('div'); el.className = 'clip' + (T.selClip === c.id ? ' sel' : ''); el.dataset.clip = c.id;
-        el.style.left = (c.start * P) + 'px'; el.style.width = Math.max(6, clipLen(c) * P) + 'px';
+        var x0 = c.start * P, x1 = x0 + Math.max(6, clipLen(c) * P), isSel = T.selClip === c.id;
+        var el = document.createElement('div'); el.className = 'clip' + (isSel ? ' sel' : ''); el.dataset.clip = c.id;
+        el.style.left = x0 + 'px'; el.style.width = (x1 - x0) + 'px';
         var cv = document.createElement('canvas'); el.append(cv);
         var lb = document.createElement('span'); lb.className = 'cname'; lb.textContent = c.snd.name; el.append(lb);
         ln.append(el);
+        if (isSel) {
+          ln.append(mkDot('hl', 'l', x0, 27), mkDot('hr', 'r', x1, 27), mkDot('hs', 's', x1 - 4, 56));
+          var fl = document.createElement('div'); fl.className = 'cfloat';
+          [['dup', 'Copy'], ['fill', 'Fill'], ['edit', 'Edit'], ['del', 'Delete']].forEach(function (a) {
+            var bb = document.createElement('button'); bb.type = 'button'; bb.dataset.ca = a[0]; bb.textContent = t(a[1]); fl.append(bb);
+          });
+          var vis0 = sc ? sc.scrollLeft : 0, vis1 = sc ? sc.scrollLeft + Math.max(0, sc.clientWidth - HEADW) : 9999;
+          fl.style.left = Math.max(vis0 + 2, Math.min(x0, vis1 - 250)) + 'px';
+          if (tr.n === 0) fl.style.top = '58px';
+          ln.append(fl);
+        }
       });
       row.append(ln); inn.append(row);
     });
+    if (T.mk) {
+      var mk = document.createElement('div'); mk.className = 'tmk'; mk.id = 'trk-mk'; inn.append(mk); placeMk();
+    }
     var ph = document.createElement('div'); ph.className = 'tph'; ph.id = 'trk-ph'; inn.append(ph);
     inn.querySelectorAll('.clip').forEach(function (el) {
-      var f = findClip(Number(el.dataset.clip)); if (f) paintClip(el.querySelector('canvas'), f.c.snd, TCOL[f.tr.n % TCOL.length]);
+      var f = findClip(Number(el.dataset.clip)); if (f) paintClip(el.querySelector('canvas'), f.c, TCOL[f.tr.n % TCOL.length]);
     });
     trkPH(T.pos * sp);
-    trkClipBar(); trkFxCard();
+    trkClipBar(); trkFxCard(); trkEdit();
     var sel = $('#tsel');
     if (sel) {
       if (!sel.options.length) for (var i = 0; i < NTR; i++) sel.add(new Option('', i));
       for (var k = 0; k < NTR; k++) sel.options[k].textContent = t('Track {n}', { n: k + 1 }) + (T.tracks[k].clips.length ? ' •' : '');
       sel.value = String(T.target);
     }
+  }
+  function placeMk() {
+    var mk = $('#trk-mk'); if (!mk || !T.mk) return;
+    mk.style.left = (HEADW + T.mk.a * ppb()) + 'px'; mk.style.width = ((T.mk.b - T.mk.a) * ppb()) + 'px';
   }
   function trkPH(sec) {
     var ph = $('#trk-ph'); if (!ph) return;
@@ -2767,14 +2844,9 @@ html { background: var(--bg); }
     bar.replaceChildren();
     var f = T.selClip != null ? findClip(T.selClip) : null;
     var hint = document.createElement('span'); hint.className = 'hint';
-    if (!f) { hint.textContent = anyClips() ? t('Tap a sound to select it, tap an empty place to set the start point.') : t('No sounds yet. Send a sound here with the Send to track list button.'); bar.append(hint); return; }
+    if (!f) { hint.textContent = anyClips() ? t('Tap a sound to select it. Double tap or press Edit to open it. Hold the ruler and drag to mark the part that repeats.') : t('No sounds yet. Send a sound here with the Send to track list button.'); bar.append(hint); return; }
     hint.textContent = t('Track {n}, bar {b}', { n: f.tr.n + 1, b: r2(f.c.start + 1) }) + ' · ' + f.c.snd.name;
     bar.append(hint);
-    [['left', '◀', 'Move left'], ['right', '▶', 'Move right'], ['dup', 'Duplicate', ''], ['fill', 'Fill', ''], ['del', 'Delete', '']].forEach(function (a) {
-      var b = document.createElement('button'); b.type = 'button'; b.className = 'btn'; b.dataset.ca = a[0];
-      b.textContent = a[2] || /[◀▶]/.test(a[1]) ? a[1] : t(a[1]); if (a[2]) b.setAttribute('aria-label', t(a[2]));
-      bar.append(b);
-    });
   }
   function trkFxCard() {
     var box = $('#trk-fx'); if (!box) return;
@@ -2806,10 +2878,8 @@ html { background: var(--bg); }
   /* ---------- műveletek ---------- */
   function selectClip(id) {
     T.selClip = id; var f = findClip(id); if (f) { T.sel = f.tr.n; T.target = f.tr.n; }
-    $('#trk-in').querySelectorAll('.clip').forEach(function (el) { el.classList.toggle('sel', Number(el.dataset.clip) === id); });
-    $('#trk-in').querySelectorAll('.thead[class]').forEach(function (el) { var r = el.parentNode; el.classList.toggle('sel', r.dataset.tr === String(T.sel)); });
-    var sel = $('#tsel'); if (sel) sel.value = String(T.target);
-    trkClipBar(); trkFxCard();
+    if (T.editClip != null && T.editClip !== id) T.editClip = null;
+    trkDraw();
   }
   function setPos(bars, trn) {
     T.pos = clamp(Math.round(bars / T.snap) * T.snap, 0, Math.max(0, T.bars - T.snap)); T.posTr = trn;
@@ -2817,38 +2887,128 @@ html { background: var(--bg); }
   }
   function clipOp(a) {
     var f = T.selClip != null ? findClip(T.selClip) : null; if (!f) return;
-    var tr = f.tr, c = f.c; trkStop(); trkDirty();
-    if (a === 'left') c.start = Math.max(0, r2(c.start - T.snap));
-    else if (a === 'right') c.start = Math.min(MAXBARS - T.snap, r2(c.start + T.snap));
-    else if (a === 'del') { tr.clips.splice(tr.clips.indexOf(c), 1); T.selClip = null; }
+    var tr = f.tr, c = f.c; trkStop();
+    if (a === 'edit') { T.editClip = c.id; trkDraw(); var ed = $('#trk-edit'); if (ed && ed.scrollIntoView) ed.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); return; }
+    trkDirty();
+    if (a === 'del') { tr.clips.splice(tr.clips.indexOf(c), 1); T.selClip = null; T.editClip = null; if (!tr.clips.length) tr.act = false; }
     else if (a === 'dup' || a === 'fill') {
       var step = stepOf(c), at = c.start + step, last = c;
       var limit = a === 'dup' ? at + 0.001 : T.bars - 0.001;
       while (at < limit && at < MAXBARS && tr.clips.length < MAXCLIPS) {
-        var n = { id: ++tuid, snd: c.snd, start: r2(at) }; tr.clips.push(n); last = n; at += step;
+        var n = cloneClip(c, r2(at)); tr.clips.push(n); last = n; at += step;
         if (a === 'dup') break;
       }
-      if (a === 'dup' && last.start + clipLen(last) > T.bars) T.bars = Math.min(MAXBARS, Math.ceil(last.start + clipLen(last)));
+      if (last.start + clipLen(last) > T.bars) T.bars = Math.min(MAXBARS, Math.ceil(last.start + clipLen(last)));
       if (tr.clips.length >= MAXCLIPS) info(t('A track can hold at most {n} sounds.', { n: MAXCLIPS }));
-      T.selClip = last.id;
+      T.selClip = last.id; T.editClip = null;
     }
     trkDraw();
   }
 
+  /* ---------- hangerő pontok szerkesztője ---------- */
+  var ED = { pt: null };
+  function edPx(w, x) { return 12 + x * (w - 24); }
+  function edPy(h, y) { return 12 + (1 - y) * (h - 24); }
+  function trkEdit() {
+    var box = $('#trk-edit'); if (!box) return;
+    var f = T.editClip != null ? findClip(T.editClip) : null;
+    box.hidden = !f; if (!f) return;
+    box.replaceChildren();
+    var h = document.createElement('h3'); h.textContent = t('Edit sound') + ' · ' + f.c.snd.name + ' · ' + t('Track {n}', { n: f.tr.n + 1 }); box.append(h);
+    var p = document.createElement('p'); p.className = 'mute'; p.textContent = t('Tap the picture to add a point. Drag a point to set the volume there: top is full volume, bottom is silent.'); box.append(p);
+    var cv = document.createElement('canvas'); cv.id = 'trk-ec'; cv.className = 'eccv'; box.append(cv);
+    var row = document.createElement('div'); row.className = 'row';
+    [['eadd', 'Add point'], ['edel', 'Delete point'], ['ereset', 'Reset'], ['eclose', 'Close']].forEach(function (a) {
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'btn'; b.dataset.ea = a[0]; b.textContent = t(a[1]); row.append(b);
+    });
+    box.append(row); edDraw();
+  }
+  function edDraw() {
+    var cv = $('#trk-ec'), f = T.editClip != null ? findClip(T.editClip) : null; if (!cv || !f) return;
+    var c = f.c, w = cv.clientWidth || 300, h = 190, col = TCOL[f.tr.n % TCOL.length];
+    cv.width = w; cv.height = h;
+    var g = cv.getContext('2d'); g.fillStyle = 'rgba(8,8,15,.8)'; g.fillRect(0, 0, w, h);
+    g.strokeStyle = 'rgba(255,255,255,.12)'; g.lineWidth = 1;
+    for (var i = 0; i <= 4; i++) { var gx = edPx(w, i / 4), gy = edPy(h, i / 4); g.beginPath(); g.moveTo(gx, 0); g.lineTo(gx, h); g.moveTo(0, gy); g.lineTo(w, gy); g.stroke(); }
+    var pk = peaksOf(c.snd), n = pk.length, L = cLen(c), dur = c.snd.proc.duration, mid = h / 2;
+    g.fillStyle = col; g.globalAlpha = 0.45;
+    for (var x = 12; x < w - 12; x++) {
+      var bp = (c.off + (x - 12) / (w - 24) * L) * c.rate / dur; if (bp < 0 || bp >= 1) continue;
+      var hh = Math.max(1, pk[Math.min(n - 1, Math.floor(bp * n))] * (h - 30)); g.fillRect(x, mid - hh / 2, 1, hh);
+    }
+    g.globalAlpha = 1;
+    var pts = envPts(c), y0 = pts.length ? pts[0].y : 1, yN = pts.length ? pts[pts.length - 1].y : 1;
+    g.strokeStyle = '#fff'; g.lineWidth = 2; g.beginPath(); g.moveTo(12, edPy(h, y0));
+    pts.forEach(function (q) { g.lineTo(edPx(w, q.x), edPy(h, q.y)); });
+    g.lineTo(w - 12, edPy(h, yN)); g.stroke();
+    pts.forEach(function (q) {
+      g.beginPath(); g.arc(edPx(w, q.x), edPy(h, q.y), q === ED.pt ? 11 : 8, 0, 6.283);
+      g.fillStyle = q === ED.pt ? '#f7e11a' : '#b5e5dc'; g.fill(); g.strokeStyle = '#08080f'; g.lineWidth = 2; g.stroke();
+    });
+  }
+  function edBind(box) {
+    box.addEventListener('pointerdown', function (e) {
+      var cv = e.target.closest('#trk-ec'); if (!cv) return;
+      var f = T.editClip != null ? findClip(T.editClip) : null; if (!f) return;
+      var c = f.c, r = cv.getBoundingClientRect(), w = cv.width, h = cv.height;
+      var mx = e.clientX - r.left, my = e.clientY - r.top, best = null, bd = 26;
+      c.env.forEach(function (q) { var d = Math.hypot(edPx(w, q.x) - mx, edPy(h, q.y) - my); if (d < bd) { bd = d; best = q; } });
+      function val(ev) {
+        var x = clamp((ev.clientX - r.left - 12) / (w - 24), 0, 1), y = clamp(1 - (ev.clientY - r.top - 12) / (h - 24), 0, 1);
+        return { x: Math.round(x * 1000) / 1000, y: Math.round(y * 100) / 100 };
+      }
+      if (!best) { if (c.env.length >= 40) return; best = val(e); c.env.push(best); }
+      ED.pt = best; edDraw(); e.preventDefault();
+      try { cv.setPointerCapture(e.pointerId); } catch (x) {}
+      function mv(ev) { var v = val(ev); ED.pt.x = v.x; ED.pt.y = v.y; edDraw(); }
+      function up() {
+        cv.removeEventListener('pointermove', mv); cv.removeEventListener('pointerup', up); cv.removeEventListener('pointercancel', up);
+        c.env.sort(function (a, b) { return a.x - b.x; }); trkStop(); trkDirty(); trkDraw();
+      }
+      cv.addEventListener('pointermove', mv); cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+    });
+    box.addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b || !b.dataset.ea) return;
+      var f = T.editClip != null ? findClip(T.editClip) : null; if (!f) return; var c = f.c;
+      trkStop();
+      if (b.dataset.ea === 'eadd') {
+        if (c.env.length >= 40) return;
+        var x = 0.5; for (var k = 0; k < 20 && c.env.some(function (q) { return Math.abs(q.x - x) < 0.03; }); k++) x = (x + 0.07) % 1;
+        var np = { x: Math.round(x * 1000) / 1000, y: 1 }; c.env.push(np); c.env.sort(function (a, b) { return a.x - b.x; }); ED.pt = np;
+      } else if (b.dataset.ea === 'edel') { var i = c.env.indexOf(ED.pt); if (i >= 0) c.env.splice(i, 1); ED.pt = null; }
+      else if (b.dataset.ea === 'ereset') { c.env = []; ED.pt = null; }
+      else if (b.dataset.ea === 'eclose') { T.editClip = null; ED.pt = null; trkDraw(); return; }
+      trkDirty(); trkDraw();
+    });
+  }
+
   /* ---------- lejátszás és render ---------- */
+  var tlo = 0;
   function trkSched(ctx, dest, base, from, total, only, list) {
     var sp = spb();
     T.tracks.forEach(function (tr) {
-      if (only != null ? tr.n !== only : tr.mute) return;
+      if (only != null ? tr.n !== only : !tr.act) return;
       if (!tr.clips.length) return;
       var gn2 = ctx.createGain(); gn2.gain.value = Math.pow(10, tr.vol / 20); gn2.connect(dest);
       tr.clips.forEach(function (c) {
         var p = c.snd.proc; if (!p) return;
-        var s = c.start * sp, e = s + p.duration;
-        if (e <= from || s >= total) return;
-        var src = ctx.createBufferSource(); src.buffer = p; src.connect(gn2);
-        src.start(base + Math.max(0, s - from), Math.max(0, from - s));
-        try { src.stop(base + total - from); } catch (x) {}
+        var L = cLen(c), s = c.start * sp, e = s + L, ss = s + Math.max(0, -c.off);
+        if (e <= from || s >= total || ss >= e) return;
+        var sndT = Math.max(0, c.off) + Math.max(0, from - ss), bo = sndT * c.rate;
+        if (bo >= p.duration - 0.001) return;
+        var when = base + Math.max(0, ss - from), wEnd = base + Math.min(e, total) - from;
+        if (wEnd - when < 0.003) return;
+        var src = ctx.createBufferSource(); src.buffer = p; src.playbackRate.value = c.rate;
+        var cg = ctx.createGain(), fg = ctx.createGain();
+        src.connect(cg); cg.connect(fg); fg.connect(gn2);
+        if (c.env.length) {
+          var pts = envPts(c), t0 = base + (s - from);
+          cg.gain.setValueAtTime(pts[0].y, 0);
+          for (var q = 0; q < pts.length; q++) cg.gain.linearRampToValueAtTime(pts[q].y, Math.max(0.0001, t0 + pts[q].x * L));
+        }
+        if (bo > 0.0005 && wEnd - when > 0.02) { fg.gain.setValueAtTime(0, when); fg.gain.linearRampToValueAtTime(1, when + 0.003); }
+        if (wEnd - when > 0.02) { fg.gain.setValueAtTime(1, Math.max(when + 0.004, wEnd - 0.006)); fg.gain.linearRampToValueAtTime(0, wEnd); }
+        src.start(when, bo); try { src.stop(wEnd); } catch (x) {}
         if (list) list.push(src);
       });
     });
@@ -2863,14 +3023,15 @@ html { background: var(--bg); }
   }
   async function trkPlay() {
     if (tbusy) return;
-    if (!anyClips()) { err(t('Nothing to play.'), t('There are no sounds on the tracks yet.')); return; }
+    var R = trkRange(null);
+    if (!anyClips() || R.hi - R.lo < 0.02) { err(t('Nothing to play.'), anyClips() ? t('Switch on at least one track that has a sound.') : t('There are no sounds on the tracks yet.')); return; }
     trkStop(); stopPlay();
     try {
       var first = null; T.tracks.forEach(function (tr) { tr.clips.forEach(function (c) { if (!first && c.snd.proc) first = c.snd.proc; }); });
       if (!tctx || tctx.state === 'closed') tctx = makeCtx(first.sampleRate);
       if (tctx.state !== 'running') { try { await tctx.resume(); } catch (e) {} }
-      var sp = spb(); ttotal = T.bars * sp;
-      tfrom = T.pos * sp; if (tfrom >= ttotal - 0.01) tfrom = 0;
+      var sp = spb(); tlo = R.lo; ttotal = R.hi;
+      tfrom = T.pos * sp; if (tfrom < tlo || tfrom >= ttotal - 0.01) tfrom = tlo;
       tmaster = tctx.createDynamicsCompressor();
       tmaster.threshold.value = -2; tmaster.knee.value = 0; tmaster.ratio.value = 20; tmaster.attack.value = 0.002; tmaster.release.value = 0.1;
       tmaster.connect(tctx.destination);
@@ -2878,16 +3039,17 @@ html { background: var(--bg); }
       trkSched(tctx, tmaster, tbase, tfrom, ttotal, null, tlist);
       tnext = tbase + (ttotal - tfrom);
       tplaying = true;
+      var span = ttotal - tlo;
       ttimer = setInterval(function () {
         if (!tplaying || !T.loop) return;
-        while (tnext - tctx.currentTime < 1.2) { trkSched(tctx, tmaster, tnext, 0, ttotal, null, tlist); tnext += ttotal; }
+        while (tnext - tctx.currentTime < 1.2) { trkSched(tctx, tmaster, tnext, tlo, ttotal, null, tlist); tnext += span; }
       }, 200);
       (function tick() {
         if (!tplaying) return;
         var el = tctx.currentTime - tbase, rem = ttotal - tfrom, pos;
         if (el < 0) pos = tfrom;
         else if (el < rem) pos = tfrom + el;
-        else if (T.loop) pos = (el - rem) % ttotal;
+        else if (T.loop) pos = tlo + (el - rem) % span;
         else { trkStop(); return; }
         trkPH(pos);
         var sc = $('#trk-scroll'), x = HEADW + pos / spb() * ppb();
@@ -2902,8 +3064,8 @@ html { background: var(--bg); }
   async function trkRender() {
     if (tbusy) return;
     var only = T.scope === 'sel' ? T.sel : null;
-    var has = only != null ? T.tracks[only].clips.length : anyClips();
-    if (!has) { err(t('Nothing to render.'), t('There are no sounds on the tracks yet.')); return; }
+    var R = trkRange(only);
+    if (R.hi - R.lo < 0.02) { err(t('Nothing to render.'), only != null ? t('There are no sounds on the tracks yet.') : t('Switch on at least one track that has a sound.')); return; }
     tbusy = true; trkStop(); $('#trk-render').disabled = true;
     info(t('Rendering...'));
     await new Promise(function (r) { setTimeout(r, 40); });
@@ -2911,8 +3073,8 @@ html { background: var(--bg); }
       var OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
       if (!OAC) throw new Error(t('the browser does not support offline rendering.'));
       var sr = 44100; T.tracks.forEach(function (tr) { tr.clips.forEach(function (c) { if (c.snd.proc) sr = c.snd.proc.sampleRate; }); });
-      var total = T.bars * spb(), off = new OAC(2, Math.max(1, Math.ceil(total * sr)), sr);
-      trkSched(off, off.destination, 0, 0, total, only, null);
+      var total = R.hi - R.lo, off = new OAC(2, Math.max(1, Math.ceil(total * sr)), sr);
+      trkSched(off, off.destination, 0, R.lo, R.hi, only, null);
       var out = await off.startRendering(), pk = 0;
       for (var c = 0; c < out.numberOfChannels; c++) { var d = out.getChannelData(c); for (var i = 0; i < d.length; i++) { var a = Math.abs(d[i]); if (!(a <= pk)) pk = a; } }
       if (!isFinite(pk)) { err(t('The render produced an invalid result.'), t('The audio contains invalid values, try less distortion or Delay feedback.')); return; }
@@ -2929,49 +3091,118 @@ html { background: var(--bg); }
 
   /* ---------- események ---------- */
   function trkInit() {
-    var top = $('#trk-top'), inn = $('#trk-in'), clipBar = $('#trk-clip'), fxc = $('#trk-fx'), sc = $('#trk-scroll');
+    var top = $('#trk-top'), inn = $('#trk-in'), clipBar = $('#trk-clip'), fxc = $('#trk-fx'), sc = $('#trk-scroll'), edb = $('#trk-edit');
+    edBind(edb);
+    var dragMoved = false, lastTap = { id: -1, t: 0 }, markJust = false;
     top.addEventListener('click', function (e) {
       var b = e.target.closest('button'); if (!b) return;
       if (b.dataset.snap) { T.snap = Number(b.dataset.snap); trkTop(); trkDraw(); }
       else if (b.dataset.zoom) { T.zoom = clamp(T.zoom + Number(b.dataset.zoom), 0, ZOOMS.length - 1); trkDraw(); }
+      else if (b.dataset.mk === 'clear') { trkStop(); T.mk = null; trkDirty(); trkTop(); trkDraw(); }
     });
     top.addEventListener('change', function (e) {
       if (e.target.id === 'trk-bpm') { var v = clamp(Number(e.target.value) || 120, 40, 300); T.bpm = r2(v); e.target.value = T.bpm; trkStop(); trkDirty(); trkDraw(); }
-      else if (e.target.id === 'trk-bars') { T.bars = clamp(Math.round(Number(e.target.value) || 16), 1, MAXBARS); e.target.value = T.bars; trkStop(); trkDirty(); T.pos = Math.min(T.pos, T.bars - 1); trkDraw(); }
+      else if (e.target.id === 'trk-bars') { T.bars = clamp(Math.round(Number(e.target.value) || 16), 1, MAXBARS); e.target.value = T.bars; if (T.mk && T.mk.b > T.bars) T.mk = null; trkStop(); trkDirty(); T.pos = Math.min(T.pos, T.bars - 1); trkTop(); trkDraw(); }
     });
     inn.addEventListener('click', function (e) {
       var tg = e.target;
-      if (tg.dataset.pick != null) { T.sel = Number(tg.dataset.pick); T.target = T.sel; T.selClip = null; trkDraw(); return; }
+      if (markJust) { markJust = false; return; }
+      if (tg.closest('.chandle')) return;
+      var cb = tg.closest('button[data-ca]'); if (cb) { clipOp(cb.dataset.ca); return; }
+      var sw = tg.closest('.tsw'); if (sw) { var m = T.tracks[Number(sw.dataset.act)]; m.act = !m.act; trkStop(); trkDirty(); trkDraw(); return; }
+      if (tg.dataset.pick != null) { T.sel = Number(tg.dataset.pick); T.target = T.sel; T.selClip = null; T.editClip = null; trkDraw(); return; }
       if (tg.dataset.fx != null) { var n = Number(tg.dataset.fx); T.fxOpen = !(T.fxOpen && T.sel === n); T.sel = n; T.target = n; trkDraw(); return; }
-      if (tg.dataset.mute != null) { var m = T.tracks[Number(tg.dataset.mute)]; m.mute = !m.mute; trkDirty(); trkDraw(); return; }
       var cl = tg.closest('.clip');
-      if (cl) { if (dragMoved) { dragMoved = false; return; } selectClip(Number(cl.dataset.clip)); return; }
+      if (cl) {
+        if (dragMoved) { dragMoved = false; return; }
+        var id = Number(cl.dataset.clip), now = Date.now();
+        if (lastTap.id === id && now - lastTap.t < 420) { lastTap.id = -1; T.selClip = id; clipOp('edit'); return; }
+        lastTap = { id: id, t: now }; selectClip(id); return;
+      }
       var ln = tg.closest('.tlane'); if (!ln) return;
       var rc = ln.getBoundingClientRect(), bars = (e.clientX - rc.left) / ppb();
       if (ln.dataset.ruler) setPos(bars, -1);
-      else { T.sel = Number(ln.dataset.lane); T.target = T.sel; T.selClip = null; setPos(bars, T.sel); trkDraw(); }
+      else { T.sel = Number(ln.dataset.lane); T.target = T.sel; T.selClip = null; T.editClip = null; setPos(bars, T.sel); trkDraw(); }
     });
-    /* húzás: csak a kijelölt hangot lehet mozgatni, így az érintéses görgetés nem akad el */
-    var dragMoved = false;
+    function snapBars(ln, x) { var rc = ln.getBoundingClientRect(); return clamp(Math.round((x - rc.left) / ppb() / T.snap) * T.snap, 0, T.bars); }
     inn.addEventListener('pointerdown', function (e) {
+      /* hosszan nyomva a vonalzón: hurok kezdete, húzással a vége */
+      var rl = e.target.closest('.rulerlane');
+      if (rl) {
+        var x0 = e.clientX, anchor = null, timer = setTimeout(function () {
+          anchor = snapBars(rl, x0); T.mk = { a: anchor, b: Math.min(T.bars, anchor + T.snap) };
+          if (T.mk.b <= T.mk.a) T.mk.a = Math.max(0, T.mk.b - T.snap);
+          var mk = $('#trk-mk'); if (!mk) { mk = document.createElement('div'); mk.className = 'tmk'; mk.id = 'trk-mk'; inn.append(mk); }
+          placeMk(); try { if (navigator.vibrate) navigator.vibrate(12); } catch (x) {}
+        }, 380);
+        try { rl.setPointerCapture(e.pointerId); } catch (x) {}
+        var mv = function (ev) {
+          if (anchor == null) { if (Math.abs(ev.clientX - x0) > 12) { clearTimeout(timer); cleanup(); } return; }
+          var b = snapBars(rl, ev.clientX), a = anchor;
+          if (b === a) b = a + (a + T.snap <= T.bars ? T.snap : -T.snap);
+          T.mk = { a: Math.min(a, b), b: Math.max(a, b) }; placeMk();
+        };
+        var cleanup = function () { rl.removeEventListener('pointermove', mv); rl.removeEventListener('pointerup', up); rl.removeEventListener('pointercancel', up); };
+        var up = function () {
+          clearTimeout(timer); cleanup();
+          if (anchor != null) { markJust = true; setTimeout(function () { markJust = false; }, 350); trkStop(); trkDirty(); trkTop(); trkDraw(); }
+        };
+        rl.addEventListener('pointermove', mv); rl.addEventListener('pointerup', up); rl.addEventListener('pointercancel', up);
+        return;
+      }
+      /* fogantyúk: eleje/vége (a hang nem mozdul), nyújtás (az egész hang nyúlik) */
+      var hd = e.target.closest('.chandle');
+      if (hd) {
+        var f0 = T.selClip != null ? findClip(T.selClip) : null; if (!f0) return;
+        var c = f0.c, kind = hd.dataset.h, xs = e.clientX, s0 = c.start, L0 = cLen(c), off0 = c.off, rate0 = c.rate, sp = spb(), moved2 = false;
+        var lane = hd.parentNode, cel = lane.querySelector('.clip.sel');
+        try { hd.setPointerCapture(e.pointerId); } catch (x) {}
+        var minB = Math.max(T.snap, 0.25);
+        var mv2 = function (ev) {
+          var d = (ev.clientX - xs) / ppb(); moved2 = true;
+          var endB = s0 + L0 / sp;
+          if (kind === 'l') {
+            var ns = clamp(Math.round((s0 + d) / T.snap) * T.snap, 0, endB - minB), dl = (ns - s0) * sp;
+            c.start = r2(ns); c.off = off0 + dl; c.len = L0 - dl;
+          } else {
+            var ne = clamp(Math.round((endB + d) / T.snap) * T.snap, s0 + minB, MAXBARS), nl = (ne - s0) * sp;
+            if (kind === 'r') c.len = nl;
+            else { var k = clamp(nl / L0, 0.25, 4); c.rate = rate0 / k; c.off = off0 * k; c.len = L0 * k; }
+          }
+          r2(0);
+          var P = ppb(), x0b = c.start * P, x1b = x0b + Math.max(6, clipLen(c) * P);
+          if (cel) { cel.style.left = x0b + 'px'; cel.style.width = (x1b - x0b) + 'px'; paintClip(cel.querySelector('canvas'), c, TCOL[f0.tr.n % TCOL.length]); }
+          var dots = lane.querySelectorAll('.chandle'); dots.forEach(function (dd) {
+            var xx = dd.dataset.h === 'l' ? x0b : dd.dataset.h === 'r' ? x1b : x1b - 4; dd.style.left = (xx - 18) + 'px';
+          });
+        };
+        var up2 = function () {
+          hd.removeEventListener('pointermove', mv2); hd.removeEventListener('pointerup', up2); hd.removeEventListener('pointercancel', up2);
+          if (moved2) { trkStop(); trkDirty(); if (c.start + clipLen(c) > T.bars) T.bars = Math.min(MAXBARS, Math.ceil(c.start + clipLen(c))); trkTop(); trkDraw(); }
+        };
+        hd.addEventListener('pointermove', mv2); hd.addEventListener('pointerup', up2); hd.addEventListener('pointercancel', up2);
+        e.preventDefault(); return;
+      }
+      /* mozgatás: csak a kijelölt hang, így a görgetés nem akad el */
       var cl = e.target.closest('.clip'); if (!cl || !cl.classList.contains('sel')) return;
       var f = findClip(Number(cl.dataset.clip)); if (!f) return;
-      var x0 = e.clientX, s0 = f.c.start, moved = false; dragMoved = false;
+      var xm = e.clientX, sm = f.c.start, moved = false; dragMoved = false;
+      var fl = cl.parentNode.querySelector('.cfloat'); 
       try { cl.setPointerCapture(e.pointerId); } catch (x) {}
       function mv(ev) {
-        var d = (ev.clientX - x0) / ppb();
-        if (Math.abs(ev.clientX - x0) > 4) moved = true;
+        var d = (ev.clientX - xm) / ppb();
+        if (Math.abs(ev.clientX - xm) > 4) moved = true;
         if (!moved) return;
-        f.c.start = clamp(r2(Math.round((s0 + d) / T.snap) * T.snap), 0, MAXBARS - T.snap);
+        f.c.start = clamp(r2(Math.round((sm + d) / T.snap) * T.snap), 0, MAXBARS - T.snap);
         cl.style.left = (f.c.start * ppb()) + 'px';
+        cl.parentNode.querySelectorAll('.chandle, .cfloat').forEach(function (z) { z.style.visibility = 'hidden'; });
       }
       function up() {
         cl.removeEventListener('pointermove', mv); cl.removeEventListener('pointerup', up); cl.removeEventListener('pointercancel', up);
-        if (moved) { dragMoved = true; trkStop(); trkDirty(); trkClipBar(); setTimeout(function () { dragMoved = false; }, 300); }
+        if (moved) { dragMoved = true; trkStop(); trkDirty(); if (f.c.start + clipLen(f.c) > T.bars) T.bars = Math.min(MAXBARS, Math.ceil(f.c.start + clipLen(f.c))); trkDraw(); setTimeout(function () { dragMoved = false; }, 300); }
       }
       cl.addEventListener('pointermove', mv); cl.addEventListener('pointerup', up); cl.addEventListener('pointercancel', up);
     });
-    clipBar.addEventListener('click', function (e) { var b = e.target.closest('button'); if (b && b.dataset.ca) clipOp(b.dataset.ca); });
     fxc.addEventListener('click', function (e) {
       var b = e.target.closest('button'); if (!b) return;
       var tr = T.tracks[T.sel];
@@ -2980,7 +3211,7 @@ html { background: var(--bg); }
         if (!buf) { err(t('Nothing to send.'), t('Upload a WAV file on the Home tab first.')); return; }
         trkStop(); tr.st = clone(S); tr.srcId = srcIdOf(); KEYS.forEach(function (k) { tr.on[k] = !!S[k].on; }); trkReproc(tr);
       }
-      else if (b.dataset.fa === 'clear') { trkStop(); tr.clips = []; tr.sounds = []; tr.st = null; tr.on = {}; T.selClip = null; T.fxOpen = false; trkDirty(); trkDraw(); }
+      else if (b.dataset.fa === 'clear') { trkStop(); tr.clips = []; tr.sounds = []; tr.st = null; tr.on = {}; tr.act = false; T.selClip = null; T.editClip = null; T.fxOpen = false; trkDirty(); trkDraw(); }
     });
     var trkFxT = 0;
     fxc.addEventListener('input', function (e) {
@@ -2998,7 +3229,7 @@ html { background: var(--bg); }
       saveRendered(trkRendered);
     });
     $('#send').addEventListener('click', trkSend);
-    $('#tsel').addEventListener('change', function () { T.target = Number(this.value); T.sel = T.target; T.selClip = null; });
+    $('#tsel').addEventListener('change', function () { T.target = Number(this.value); T.sel = T.target; T.selClip = null; T.editClip = null; });
     window.addEventListener('resize', function () { if (!$('#p-trk').hidden) trkDraw(); });
   }
   function trkShow() { trkTop(); trkDraw(); }
