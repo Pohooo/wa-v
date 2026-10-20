@@ -386,6 +386,10 @@ html { background: var(--bg); }
 .trkedit[hidden] { display: none !important; }
 .trkedit h3 { margin: 0; }
 .eccv { width: 100%; height: 190px; display: block; touch-action: none; border: 1px solid var(--line); }
+.thead { background: rgba(12,12,26,.6); }
+.trkin.zin .thead { background: transparent; border-right-color: transparent; }
+.trkin.zin .thead .tname, .trkin.zin .thead .tbtns { opacity: .38; }
+.trkin.fine .tlane { background-image: linear-gradient(to right, rgba(255,255,255,.3) 1px, transparent 1px), linear-gradient(to right, rgba(255,255,255,.42) 1px, transparent 1px); }
 </style>
 
 </head>
@@ -2587,7 +2591,7 @@ html { background: var(--bg); }
   var HEADW = 78;
   var SNAPS = [[0.25, '1/4'], [0.5, '1/2'], [1, '1'], [2, '2'], [4, '4'], [8, '8']];
   var TCOL = ['#19e3ff', '#ff3d7f', '#f7e11a', '#3dff9a', '#b07cff', '#ff9a3d'];
-  var T = { bpm: 0, bars: 16, snap: 1, pp: 52, sel: 0, selClip: null, pos: 0, posTr: -1, target: 0, loop: true, fxOpen: false, scope: 'mix', mk: null, editClip: null, tracks: [] };
+  var T = { bpm: 0, bars: 16, snap: 1, pp: 52, rh: 54, sel: 0, selClip: null, pos: 0, posTr: -1, target: 0, loop: true, fxOpen: false, scope: 'mix', mk: null, editClip: null, tracks: [] };
   var tuid = 0, tsrc = [], trkRendered = null, tctx = null, tlist = [], tmaster = null, traf = 0, ttimer = 0, tplaying = false;
   var tbase = 0, tfrom = 0, tnext = 0, ttotal = 0, tbusy = false;
   for (var ti = 0; ti < NTR; ti++) T.tracks.push({ n: ti, clips: [], sounds: [], st: null, on: {}, vol: 0, act: false, srcId: 0 });
@@ -2595,10 +2599,11 @@ html { background: var(--bg); }
   function spb() { return 240 / (T.bpm || 120); }
   function ppbMax() { return clamp(Math.floor(16000 / T.bars), 60, 400); }
   function ppb() { return clamp(T.pp, 6, ppbMax()); }
-  function rowH() { return clamp(Math.round(54 + (ppb() - 52) * 0.55), 48, 120); }
-  function zoomTo(np, ax) {
+  function rowH() { return clamp(Math.round(T.rh), 44, 260); }
+  function fineStep() { var f = T.snap; while (f > 1 / 64 && (f / 2) * ppb() >= 12) f /= 2; return f; }
+  function zoomTo(np, ax, force) {
     var sc = $('#trk-scroll'); if (!sc) return;
-    np = clamp(np, 6, ppbMax()); var old = ppb(); if (Math.abs(np - old) < 0.05) return;
+    np = clamp(np, 6, ppbMax()); var old = ppb(); if (Math.abs(np - old) < 0.05 && !force) return;
     var vw = Math.max(40, sc.clientWidth - HEADW); if (ax == null || !isFinite(ax)) ax = vw / 2; ax = clamp(ax, 0, vw);
     var bar = (sc.scrollLeft + ax) / old; T.pp = np; trkDraw(); sc.scrollLeft = Math.max(0, bar * np - ax);
   }
@@ -2795,7 +2800,7 @@ html { background: var(--bg); }
     var inn = $('#trk-in'); if (!inn) return;
     var P = ppb(), W = T.bars * P, sp = spb(), sc = $('#trk-scroll');
     inn.style.minHeight = inn.offsetHeight + 'px'; /* rajzolás közben ne ugorjon a lap */
-    var RH = rowH(); inn.style.setProperty('--rowh', RH + 'px');
+    var RH = rowH(); inn.style.setProperty('--rowh', RH + 'px'); inn.classList.toggle('zin', P >= 90 || RH >= 100);
     inn.style.width = (HEADW + W) + 'px';
     inn.style.setProperty('--ppb', P + 'px'); inn.style.setProperty('--snapw', (P * T.snap) + 'px'); inn.style.setProperty('--qw', (P / 4) + 'px');
     inn.replaceChildren();
@@ -3124,22 +3129,28 @@ html { background: var(--bg); }
       var b = e.target.closest('button'); if (!b) return;
       if (b.dataset.snap) { T.snap = Number(b.dataset.snap); trkTop(); trkDraw(); }
       else if (b.dataset.zoom === 'fit') fitView();
-      else if (b.dataset.zoom) zoomTo(ppb() * (Number(b.dataset.zoom) > 0 ? 1.35 : 1 / 1.35));
+      else if (b.dataset.zoom) { var zu = Number(b.dataset.zoom) > 0; T.rh = clamp(T.rh * (zu ? 1.2 : 1 / 1.2), 44, 260); zoomTo(ppb() * (zu ? 1.35 : 1 / 1.35), null, true); }
       else if (b.dataset.mk === 'clear') { trkStop(); T.mk = null; trkDirty(); trkTop(); trkDraw(); }
     });
     /* kétujjas nagyítás (az egész nézetet: idővonal + sávmagasság), Ctrl+görgő asztali gépen */
     var pz = null;
-    function pzDist(e) { var a = e.touches[0], b = e.touches[1]; return { d: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY), x: (a.clientX + b.clientX) / 2 }; }
+    function pzDist(e) { var a = e.touches[0], b = e.touches[1]; return { dx: Math.abs(a.clientX - b.clientX), dy: Math.abs(a.clientY - b.clientY), x: (a.clientX + b.clientX) / 2 }; }
     function pzMove(e) {
-      if (!pz || e.touches.length < 2) return; e.preventDefault();
-      var m = pzDist(e); pz.np = pz.p * m.d / Math.max(10, pz.d); pz.ax = m.x - sc.getBoundingClientRect().left - HEADW;
-      if (!pz.raf) pz.raf = requestAnimationFrame(function () { pz.raf = 0; zoomTo(pz.np, pz.ax); });
+      var q = pz; if (!q || e.touches.length < 2) return; e.preventDefault();
+      var m = pzDist(e);
+      if (!q.axis) { var gx = Math.abs(m.dx - q.dx), gy = Math.abs(m.dy - q.dy); if (Math.max(gx, gy) < 10) return; q.axis = gx >= gy ? 'h' : 'v'; }
+      if (q.axis === 'h') { q.np = q.p * Math.max(m.dx, 40) / Math.max(q.dx, 40); q.ax = m.x - sc.getBoundingClientRect().left - HEADW; }
+      else q.nrh = q.r * Math.max(m.dy, 40) / Math.max(q.dy, 40);
+      if (!q.raf) q.raf = requestAnimationFrame(function () {
+        q.raf = 0;
+        if (q.axis === 'h') zoomTo(q.np, q.ax); else { T.rh = clamp(q.nrh, 44, 260); trkDraw(); }
+      });
     }
     function pzEnd(e) { if (e.touches.length < 2) pz = null; }
     function pzBind(el) { el.addEventListener('touchmove', pzMove, { passive: false }); el.addEventListener('touchend', pzEnd); el.addEventListener('touchcancel', pzEnd); }
     sc.addEventListener('touchstart', function (e) {
       if (e.touches.length !== 2) return;
-      var m = pzDist(e); pz = { d: m.d, p: ppb(), raf: 0, np: ppb(), ax: 0 };
+      var m = pzDist(e); pz = { dx: m.dx, dy: m.dy, p: ppb(), r: T.rh, axis: null, raf: 0, np: ppb(), ax: 0, nrh: T.rh };
       /* a kézzel újrarajzolt elemeknél az esemény a régi elemen marad, ezért oda is kötünk */
       pzBind(e.touches[0].target); if (e.touches[1].target !== e.touches[0].target) pzBind(e.touches[1].target);
     }, { passive: true });
@@ -3206,17 +3217,17 @@ html { background: var(--bg); }
         var c = f0.c, kind = hd.dataset.h, xs = e.clientX, s0 = c.start, L0 = cLen(c), off0 = c.off, rate0 = c.rate, sp = spb(), moved2 = false;
         var lane = hd.parentNode, cel = lane.querySelector('.clip.sel');
         try { hd.setPointerCapture(e.pointerId); } catch (x) {}
-        var minB = Math.max(T.snap, 0.25);
+        var fs = fineStep(), minB = fs; inn.classList.add('fine'); inn.style.setProperty('--snapw', (fs * ppb()) + 'px');
         var mv2 = function (ev) {
           var d = (ev.clientX - xs) / ppb(); moved2 = true;
           var endB = s0 + L0 / sp;
           if (kind === 'l') {
-            var ns = clamp(Math.round((s0 + d) / T.snap) * T.snap, 0, endB - minB), dl = (ns - s0) * sp;
-            c.start = r2(ns); c.off = off0 + dl; c.len = L0 - dl;
+            var ns = clamp(Math.round((s0 + d) / fs) * fs, 0, endB - minB), dl = (ns - s0) * sp;
+            c.start = Math.round(ns * 1e4) / 1e4; c.off = off0 + dl; c.len = L0 - dl;
           } else {
-            var ne = clamp(Math.round((endB + d) / T.snap) * T.snap, s0 + minB, MAXBARS), nl = (ne - s0) * sp;
+            var ne = clamp(Math.round((endB + d) / fs) * fs, s0 + minB, MAXBARS), nl = (ne - s0) * sp;
             if (kind === 'r') c.len = nl;
-            else { var k = clamp(nl / L0, 0.25, 4); c.rate = rate0 / k; c.off = off0 * k; c.len = L0 * k; }
+            else { var k = clamp(nl / L0, 0.1, 4); c.rate = rate0 / k; c.off = off0 * k; c.len = L0 * k; }
           }
           r2(0);
           var P = ppb(), x0b = c.start * P, x1b = x0b + Math.max(6, clipLen(c) * P);
@@ -3227,6 +3238,7 @@ html { background: var(--bg); }
         };
         var up2 = function () {
           hd.removeEventListener('pointermove', mv2); hd.removeEventListener('pointerup', up2); hd.removeEventListener('pointercancel', up2);
+          inn.classList.remove('fine'); inn.style.setProperty('--snapw', (T.snap * ppb()) + 'px');
           if (moved2) { trkStop(); trkDirty(); if (c.start + clipLen(c) > T.bars) T.bars = Math.min(MAXBARS, Math.ceil(c.start + clipLen(c))); trkTop(); trkDraw(); }
         };
         hd.addEventListener('pointermove', mv2); hd.addEventListener('pointerup', up2); hd.addEventListener('pointercancel', up2);
