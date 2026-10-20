@@ -337,9 +337,9 @@ html { background: var(--bg); }
 .tnum span { font: 700 0.72rem var(--f-body); letter-spacing: .1em; text-transform: uppercase; color: var(--mute); }
 .tnum input[type=number] { width: 76px; min-height: 36px; background: rgba(12,12,26,.7); color: var(--ink); border: 1px solid var(--line); font: 700 0.9rem var(--f-mono); padding: 2px 6px; }
 .tnum.wide { display: flex; flex-direction: column; align-items: stretch; }
-.trkscroll { overflow-x: auto; overflow-y: hidden; border: 1px solid var(--line); background: rgba(8,8,15,.55); -webkit-overflow-scrolling: touch; }
+.trkscroll { touch-action: pan-x pan-y; overflow-x: auto; overflow-y: hidden; border: 1px solid var(--line); background: rgba(8,8,15,.55); -webkit-overflow-scrolling: touch; }
 .trkin { position: relative; }
-.trow { display: flex; height: 54px; border-bottom: 1px solid rgba(255,255,255,.08); }
+.trow { display: flex; height: var(--rowh, 54px); border-bottom: 1px solid rgba(255,255,255,.08); }
 .trow.truler { height: 30px; }
 .thead { position: sticky; left: 0; z-index: 4; flex: 0 0 78px; width: 78px; background: rgba(12,12,26,.92); border-right: 1px solid var(--line); display: flex; flex-direction: column; justify-content: center; gap: 3px; padding: 3px 4px; }
 .thead.sel { box-shadow: inset 3px 0 0 var(--tc, var(--cyan)); }
@@ -706,6 +706,8 @@ html { background: var(--bg); }
       'Zoom': 'Nagyítás',
       'Zoom in': 'Nagyítás',
       'Zoom out': 'Kicsinyítés',
+      'Fit': 'Illesztés',
+      'bar': 'ütem',
       'Track {n}': 'Track {n}',
       'Mute': 'Némítás',
       'Nothing to send.': 'Nincs mit küldeni.',
@@ -896,6 +898,8 @@ html { background: var(--bg); }
       'Zoom': 'Zoom',
       'Zoom in': 'Acercar',
       'Zoom out': 'Alejar',
+      'Fit': 'Ajustar',
+      'bar': 'compás',
       'Track {n}': 'Pista {n}',
       'Mute': 'Silenciar',
       'Nothing to send.': 'Nada que enviar.',
@@ -1086,6 +1090,8 @@ html { background: var(--bg); }
       'Zoom': 'Zoom',
       'Zoom in': 'Vergrößern',
       'Zoom out': 'Verkleinern',
+      'Fit': 'Einpassen',
+      'bar': 'Takt',
       'Track {n}': 'Spur {n}',
       'Mute': 'Stumm',
       'Nothing to send.': 'Nichts zu senden.',
@@ -2578,16 +2584,32 @@ html { background: var(--bg); }
 
   /* ---------- Tracks: több szerkesztett hang összerakása sávokra ---------- */
   var NTR = 12, MAXBARS = 150, MAXCLIPS = 200;
-  var ZOOMS = [14, 22, 34, 52, 80, 120, 180], HEADW = 78;
+  var HEADW = 78;
   var SNAPS = [[0.25, '1/4'], [0.5, '1/2'], [1, '1'], [2, '2'], [4, '4'], [8, '8']];
   var TCOL = ['#19e3ff', '#ff3d7f', '#f7e11a', '#3dff9a', '#b07cff', '#ff9a3d'];
-  var T = { bpm: 0, bars: 16, snap: 1, zoom: 3, sel: 0, selClip: null, pos: 0, posTr: -1, target: 0, loop: true, fxOpen: false, scope: 'mix', mk: null, editClip: null, tracks: [] };
+  var T = { bpm: 0, bars: 16, snap: 1, pp: 52, sel: 0, selClip: null, pos: 0, posTr: -1, target: 0, loop: true, fxOpen: false, scope: 'mix', mk: null, editClip: null, tracks: [] };
   var tuid = 0, tsrc = [], trkRendered = null, tctx = null, tlist = [], tmaster = null, traf = 0, ttimer = 0, tplaying = false;
   var tbase = 0, tfrom = 0, tnext = 0, ttotal = 0, tbusy = false;
   for (var ti = 0; ti < NTR; ti++) T.tracks.push({ n: ti, clips: [], sounds: [], st: null, on: {}, vol: 0, act: false, srcId: 0 });
 
   function spb() { return 240 / (T.bpm || 120); }
-  function ppb() { return ZOOMS[T.zoom]; }
+  function ppbMax() { return clamp(Math.floor(16000 / T.bars), 60, 400); }
+  function ppb() { return clamp(T.pp, 6, ppbMax()); }
+  function rowH() { return clamp(Math.round(54 + (ppb() - 52) * 0.55), 48, 120); }
+  function zoomTo(np, ax) {
+    var sc = $('#trk-scroll'); if (!sc) return;
+    np = clamp(np, 6, ppbMax()); var old = ppb(); if (Math.abs(np - old) < 0.05) return;
+    var vw = Math.max(40, sc.clientWidth - HEADW); if (ax == null || !isFinite(ax)) ax = vw / 2; ax = clamp(ax, 0, vw);
+    var bar = (sc.scrollLeft + ax) / old; T.pp = np; trkDraw(); sc.scrollLeft = Math.max(0, bar * np - ax);
+  }
+  function fitView() {
+    var sc = $('#trk-scroll'); if (!sc) return; var vw = Math.max(40, sc.clientWidth - HEADW);
+    var f = T.selClip != null ? findClip(T.selClip) : null;
+    if (f && f.c.snd.proc) {
+      var L = Math.max(0.25, clipLen(f.c)), np = clamp(vw / (L * 1.2), 6, ppbMax()); T.pp = np; trkDraw();
+      sc.scrollLeft = Math.max(0, f.c.start * np - vw * 0.1);
+    } else { T.pp = clamp(vw / T.bars, 6, ppbMax()); trkDraw(); sc.scrollLeft = 0; }
+  }
   function r2(x) { return Math.round(x * 100) / 100; }
   function srcIdOf() {
     for (var i = 0; i < tsrc.length; i++) if (tsrc[i] === origBuf) return i + 1;
@@ -2736,7 +2758,8 @@ html { background: var(--bg); }
     var zl = document.createElement('span'); zl.className = 'tlbl'; zl.textContent = t('Zoom');
     var zm = document.createElement('button'); zm.type = 'button'; zm.className = 'segbtn'; zm.textContent = '−'; zm.dataset.zoom = '-1'; zm.setAttribute('aria-label', t('Zoom out'));
     var zp = document.createElement('button'); zp.type = 'button'; zp.className = 'segbtn'; zp.textContent = '+'; zp.dataset.zoom = '1'; zp.setAttribute('aria-label', t('Zoom in'));
-    row2.append(zl, zm, zp);
+    var zf = document.createElement('button'); zf.type = 'button'; zf.className = 'segbtn'; zf.textContent = t('Fit'); zf.dataset.zoom = 'fit';
+    row2.append(zl, zm, zp, zf);
     box.append(row1, row2);
   }
   function peaksOf(snd) {
@@ -2748,7 +2771,7 @@ html { background: var(--bg); }
   function envPts(c) { return c.env.slice().sort(function (a, b) { return a.x - b.x; }); }
   function paintClip(cv, c, col) {
     var w = cv.clientWidth || 40, h = cv.clientHeight || 30;
-    cv.width = Math.min(1600, Math.max(8, Math.round(w))); cv.height = h;
+    cv.width = Math.min(2048, Math.max(8, Math.round(w))); cv.height = h;
     var g = cv.getContext('2d'), snd = c.snd, pk = peaksOf(snd), n = pk.length, L = cLen(c), dur = snd.proc.duration;
     g.fillStyle = col;
     for (var x = 0; x < cv.width; x++) {
@@ -2771,6 +2794,8 @@ html { background: var(--bg); }
   function trkDraw() {
     var inn = $('#trk-in'); if (!inn) return;
     var P = ppb(), W = T.bars * P, sp = spb(), sc = $('#trk-scroll');
+    inn.style.minHeight = inn.offsetHeight + 'px'; /* rajzolás közben ne ugorjon a lap */
+    var RH = rowH(); inn.style.setProperty('--rowh', RH + 'px');
     inn.style.width = (HEADW + W) + 'px';
     inn.style.setProperty('--ppb', P + 'px'); inn.style.setProperty('--snapw', (P * T.snap) + 'px'); inn.style.setProperty('--qw', (P / 4) + 'px');
     inn.replaceChildren();
@@ -2799,17 +2824,17 @@ html { background: var(--bg); }
         var el = document.createElement('div'); el.className = 'clip' + (isSel ? ' sel' : ''); el.dataset.clip = c.id;
         el.style.left = x0 + 'px'; el.style.width = (x1 - x0) + 'px';
         var cv = document.createElement('canvas'); el.append(cv);
-        var lb = document.createElement('span'); lb.className = 'cname'; lb.textContent = c.snd.name; el.append(lb);
+        var lb = document.createElement('span'); lb.className = 'cname'; lb.textContent = c.snd.name + ' · ' + r2(clipLen(c)) + ' ' + t('bar') + ' · ' + cLen(c).toFixed(2) + ' s'; el.append(lb);
         ln.append(el);
         if (isSel) {
-          ln.append(mkDot('hl', 'l', x0, 27), mkDot('hr', 'r', x1, 27), mkDot('hs', 's', x1 - 4, 56));
+          ln.append(mkDot('hl', 'l', x0, RH / 2), mkDot('hr', 'r', x1, RH / 2), mkDot('hs', 's', x1 - 4, RH + 2));
           var fl = document.createElement('div'); fl.className = 'cfloat';
           [['dup', 'Copy'], ['fill', 'Fill'], ['edit', 'Edit'], ['del', 'Delete']].forEach(function (a) {
             var bb = document.createElement('button'); bb.type = 'button'; bb.dataset.ca = a[0]; bb.textContent = t(a[1]); fl.append(bb);
           });
           var vis0 = sc ? sc.scrollLeft : 0, vis1 = sc ? sc.scrollLeft + Math.max(0, sc.clientWidth - HEADW) : 9999;
           fl.style.left = Math.max(vis0 + 2, Math.min(x0, vis1 - 250)) + 'px';
-          if (tr.n === 0) fl.style.top = '58px';
+          if (tr.n === 0) fl.style.top = (RH + 4) + 'px';
           ln.append(fl);
         }
       });
@@ -2830,6 +2855,7 @@ html { background: var(--bg); }
       for (var k = 0; k < NTR; k++) sel.options[k].textContent = t('Track {n}', { n: k + 1 }) + (T.tracks[k].clips.length ? ' •' : '');
       sel.value = String(T.target);
     }
+    inn.style.minHeight = '';
   }
   function placeMk() {
     var mk = $('#trk-mk'); if (!mk || !T.mk) return;
@@ -2845,7 +2871,7 @@ html { background: var(--bg); }
     var f = T.selClip != null ? findClip(T.selClip) : null;
     var hint = document.createElement('span'); hint.className = 'hint';
     if (!f) { hint.textContent = anyClips() ? t('Tap a sound to select it. Double tap or press Edit to open it. Hold the ruler and drag to mark the part that repeats.') : t('No sounds yet. Send a sound here with the Send to track list button.'); bar.append(hint); return; }
-    hint.textContent = t('Track {n}, bar {b}', { n: f.tr.n + 1, b: r2(f.c.start + 1) }) + ' · ' + f.c.snd.name;
+    hint.textContent = t('Track {n}, bar {b}', { n: f.tr.n + 1, b: r2(f.c.start + 1) }) + ' · ' + f.c.snd.name + ' · ' + r2(clipLen(f.c)) + ' ' + t('bar') + ' · ' + cLen(f.c).toFixed(2) + ' s';
     bar.append(hint);
   }
   function trkFxCard() {
@@ -3097,9 +3123,32 @@ html { background: var(--bg); }
     top.addEventListener('click', function (e) {
       var b = e.target.closest('button'); if (!b) return;
       if (b.dataset.snap) { T.snap = Number(b.dataset.snap); trkTop(); trkDraw(); }
-      else if (b.dataset.zoom) { T.zoom = clamp(T.zoom + Number(b.dataset.zoom), 0, ZOOMS.length - 1); trkDraw(); }
+      else if (b.dataset.zoom === 'fit') fitView();
+      else if (b.dataset.zoom) zoomTo(ppb() * (Number(b.dataset.zoom) > 0 ? 1.35 : 1 / 1.35));
       else if (b.dataset.mk === 'clear') { trkStop(); T.mk = null; trkDirty(); trkTop(); trkDraw(); }
     });
+    /* kétujjas nagyítás (az egész nézetet: idővonal + sávmagasság), Ctrl+görgő asztali gépen */
+    var pz = null;
+    function pzDist(e) { var a = e.touches[0], b = e.touches[1]; return { d: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY), x: (a.clientX + b.clientX) / 2 }; }
+    function pzMove(e) {
+      if (!pz || e.touches.length < 2) return; e.preventDefault();
+      var m = pzDist(e); pz.np = pz.p * m.d / Math.max(10, pz.d); pz.ax = m.x - sc.getBoundingClientRect().left - HEADW;
+      if (!pz.raf) pz.raf = requestAnimationFrame(function () { pz.raf = 0; zoomTo(pz.np, pz.ax); });
+    }
+    function pzEnd(e) { if (e.touches.length < 2) pz = null; }
+    function pzBind(el) { el.addEventListener('touchmove', pzMove, { passive: false }); el.addEventListener('touchend', pzEnd); el.addEventListener('touchcancel', pzEnd); }
+    sc.addEventListener('touchstart', function (e) {
+      if (e.touches.length !== 2) return;
+      var m = pzDist(e); pz = { d: m.d, p: ppb(), raf: 0, np: ppb(), ax: 0 };
+      /* a kézzel újrarajzolt elemeknél az esemény a régi elemen marad, ezért oda is kötünk */
+      pzBind(e.touches[0].target); if (e.touches[1].target !== e.touches[0].target) pzBind(e.touches[1].target);
+    }, { passive: true });
+    sc.addEventListener('touchmove', pzMove, { passive: false });
+    sc.addEventListener('wheel', function (e) {
+      if (!e.ctrlKey) return; e.preventDefault();
+      zoomTo(ppb() * Math.exp(-e.deltaY * 0.01), e.clientX - sc.getBoundingClientRect().left - HEADW);
+    }, { passive: false });
+    document.addEventListener('visibilitychange', function () { if (document.hidden) { try { trkStop(); } catch (x) {} try { stopPlay(); } catch (x) {} } });
     top.addEventListener('change', function (e) {
       if (e.target.id === 'trk-bpm') { var v = clamp(Number(e.target.value) || 120, 40, 300); T.bpm = r2(v); e.target.value = T.bpm; trkStop(); trkDirty(); trkDraw(); }
       else if (e.target.id === 'trk-bars') { T.bars = clamp(Math.round(Number(e.target.value) || 16), 1, MAXBARS); e.target.value = T.bars; if (T.mk && T.mk.b > T.bars) T.mk = null; trkStop(); trkDirty(); T.pos = Math.min(T.pos, T.bars - 1); trkTop(); trkDraw(); }
